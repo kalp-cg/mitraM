@@ -1,0 +1,30 @@
+## Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+## Dart / Flutter
+.dart_tool/
+build/
+pubspec.lock
+*.iml
+/.gradle
+/android/.gradle
+/ios/Pods/
+
+## IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+## Git internals in nested repos
+**/.git
+
+## macOS
+.DS_Store
+
+## Logs
+*.log
