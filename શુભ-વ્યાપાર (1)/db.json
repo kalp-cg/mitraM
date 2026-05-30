@@ -1,0 +1,307 @@
+{
+  "members": [
+    {
+      "id": "m1",
+      "nameEn": "V G RAJPUT",
+      "nameGu": "વી. જી. રાજપૂત",
+      "status": "ACTIVE",
+      "imageUrl": "/api/image/member/0",
+      "year2023": {
+        "capital": 0,
+        "expense": 0,
+        "profit": 0
+      },
+      "year2024": {
+        "capital": 400000,
+        "expense": 0,
+        "profit": 0
+      },
+      "holding2024": 0,
+      "gopiMandal": 0,
+      "notes": "Acc (₹2,00,000), HETAL ACC (₹4,94,361), [HETAL] BACHAT RAKAM (₹2,00,000)",
+      "year2025": {
+        "capital": 494361,
+        "expense": 0,
+        "profit": 0
+      }
+    },
+    {
+      "id": "m2",
+      "nameEn": "A J PATEL",
+      "nameGu": "એ. જે. પટેલ",
+      "status": "ACTIVE",
+      "imageUrl": "/api/image/member/1",
+      "year2023": {
+        "capital": 0,
+        "expense": 0,
+        "profit": 0
+      },
+      "year2024": {
+        "capital": 400000,
+        "expense": 0,
+        "profit": 0
+      },
+      "holding2024": 0,
+      "gopiMandal": 0,
+      "notes": "Acc (₹2,00,000), HETAL ACC (₹4,94,361), [HETAL] BACHAT RAKAM (₹2,00,000)",
+      "year2025": {
+        "capital": 494361,
+        "expense": 0,
+        "profit": 0
+      }
+    },
+    {
+      "id": "m3",
+      "nameEn": "S C MODI",
+      "nameGu": "એસ. સી. મોદી",
+      "status": "ACTIVE",
+      "imageUrl": "/api/image/member/2",
+      "year2023": {
+        "capital": 0,
+        "expense": 0,
+        "profit": 0
+      },
+      "year2024": {
+        "capital": 400000,
+        "expense": 0,
+        "profit": 0
+      },
+      "holding2024": 0,
+      "gopiMandal": 0,
+      "notes": "Acc (₹2,00,000), HETAL ACC (₹4,94,361), [HETAL] BACHAT RAKAM (₹2,00,000)",
+      "year2025": {
+        "capital": 494361,
+        "expense": 0,
+        "profit": 0
+      }
+    },
+    {
+      "id": "m4",
+      "nameEn": "S B PATEL",
+      "nameGu": "એસ. બી. પટેલ",
+      "status": "ACTIVE",
+      "imageUrl": "/api/image/member/3",
+      "year2023": {
+        "capital": 0,
+        "expense": 0,
+        "profit": 0
+      },
+      "year2024": {
+        "capital": 400000,
+        "expense": 0,
+        "profit": 0
+      },
+      "holding2024": 0,
+      "gopiMandal": 0,
+      "notes": "Acc (₹2,00,000), HETAL ACC (₹4,94,361), [HETAL] BACHAT RAKAM (₹2,00,000)",
+      "year2025": {
+        "capital": 494361,
+        "expense": 0,
+        "profit": 0
+      }
+    },
+    {
+      "id": "m5",
+      "nameEn": "P M PRAJAPATI",
+      "nameGu": "પી. એમ. પ્રજાપતિ",
+      "status": "ACTIVE",
+      "imageUrl": "/api/image/member/4",
+      "year2023": {
+        "capital": 0,
+        "expense": 0,
+        "profit": 0
+      },
+      "year2024": {
+        "capital": 400000,
+        "expense": 0,
+        "profit": 0
+      },
+      "holding2024": 0,
+      "gopiMandal": 0,
+      "notes": "Acc (₹2,00,000), HETAL ACC (₹4,94,361), [HETAL] BACHAT RAKAM (₹2,00,000)",
+      "year2025": {
+        "capital": 494361,
+        "expense": 0,
+        "profit": 0
+      }
+    }
+  ],
+  "masterRows": [
+    {
+      "id": "mr1",
+      "titleEn": "Income (આવક)",
+      "titleGu": "આવક (Income)",
+      "year23": 0,
+      "year24": 2000000,
+      "isCalculated": false,
+      "year25": 2471805,
+      "year26": 0,
+      "year27": 0,
+      "year28": 0,
+      "year29": 0,
+      "year30": 0,
+      "year31": 0,
+      "year32": 0,
+      "year33": 0,
+      "year34": 0,
+      "year35": 0
+    },
+    {
+      "id": "mr2",
+      "titleEn": "Pending Expense (બાકી ખર્ચ)",
+      "titleGu": "બાકી ખર્ચ (Pending Expense)",
+      "year23": 0,
+      "year24": 0,
+      "isCalculated": false,
+      "year25": 0,
+      "year26": 0,
+      "year27": 0,
+      "year28": 0,
+      "year29": 0,
+      "year30": 0,
+      "year31": 0,
+      "year32": 0,
+      "year33": 0,
+      "year34": 0,
+      "year35": 0
+    },
+    {
+      "id": "mr3",
+      "titleEn": "Remaining Amount (વધેલ રકમ)",
+      "titleGu": "વધેલ રકમ (Remaining Amount)",
+      "year23": 0,
+      "year24": 2000000,
+      "isCalculated": true,
+      "calcType": "subtract",
+      "year25": 2471805,
+      "year26": 0,
+      "year27": 0,
+      "year28": 0,
+      "year29": 0,
+      "year30": 0,
+      "year31": 0,
+      "year32": 0,
+      "year33": 0,
+      "year34": 0,
+      "year35": 0
+    },
+    {
+      "id": "mr4",
+      "titleEn": "Profit (નફો)",
+      "titleGu": "નફો (Profit)",
+      "year23": 0,
+      "year24": 0,
+      "isCalculated": false,
+      "year25": 0,
+      "year26": 0,
+      "year27": 0,
+      "year28": 0,
+      "year29": 0,
+      "year30": 0,
+      "year31": 0,
+      "year32": 0,
+      "year33": 0,
+      "year34": 0,
+      "year35": 0
+    },
+    {
+      "id": "mr5",
+      "titleEn": "Holding (હોલ્ડિંગ)",
+      "titleGu": "હોલ્ડિંગ (Holding)",
+      "year23": 0,
+      "year24": 0,
+      "isCalculated": false,
+      "year25": 0,
+      "year26": 0,
+      "year27": 0,
+      "year28": 0,
+      "year29": 0,
+      "year30": 0,
+      "year31": 0,
+      "year32": 0,
+      "year33": 0,
+      "year34": 0,
+      "year35": 0
+    },
+    {
+      "id": "mr6",
+      "titleEn": "Gopi Mandal (ગોપી મંડળ)",
+      "titleGu": "ગોપી મંડળ",
+      "year23": 0,
+      "year24": 0,
+      "isCalculated": false,
+      "year25": 0,
+      "year26": 0,
+      "year27": 0,
+      "year28": 0,
+      "year29": 0,
+      "year30": 0,
+      "year31": 0,
+      "year32": 0,
+      "year33": 0,
+      "year34": 0,
+      "year35": 0
+    },
+    {
+      "id": "mr7",
+      "titleEn": "Grand Total (એકંદર કુલ)",
+      "titleGu": "એકંદર કુલ (Grand Total)",
+      "year23": 0,
+      "year24": 2000000,
+      "isCalculated": true,
+      "calcType": "add_all",
+      "year25": 2471805,
+      "year26": 0,
+      "year27": 0,
+      "year28": 0,
+      "year29": 0,
+      "year30": 0,
+      "year31": 0,
+      "year32": 0,
+      "year33": 0,
+      "year34": 0,
+      "year35": 0
+    }
+  ],
+  "currentYear": "year2026",
+  "appTitleGu": "શુભ વ્યાપાર",
+  "appDescriptionGu": "ચોપડા પૂજન - ડિજિટલ ખાતાવહી",
+  "recentLogs": [
+    {
+      "id": "log_1780114059992",
+      "timestamp": "30-05-2026 09:37",
+      "user": "હિસાબનીશ",
+      "actionGu": "[30-05-2026] સમૂહ મુડી જમા \"BACHAT RAKAM\" [HETAL] દ્વારા વર્ષ 2024 હેઠળ ₹10,00,000 સમાન ગણતરીએ વિતરિત થયો."
+    },
+    {
+      "id": "log_1780027717311",
+      "timestamp": "15-07-2025 09:38",
+      "user": "હિસાબનીશ",
+      "actionGu": "[15-07-2025] સમૂહ મુડી જમા \"HETAL ACC\" વર્ષ 2025 હેઠળ ₹24,71,804 સમાન ગણતરીએ વિતરિત થયો."
+    },
+    {
+      "id": "log_1780027680121",
+      "timestamp": "14-02-2024 09:38",
+      "user": "હિસાબનીશ",
+      "actionGu": "[14-02-2024] સમૂહ મુડી જમા \"Acc\" વર્ષ 2024 હેઠળ ₹10,00,000 સમાન ગણતરીએ વિતરિત થયો."
+    },
+    {
+      "id": "log_1780027582579",
+      "timestamp": "09:36 AM",
+      "user": "હિસાબનીશ",
+      "actionGu": "સિસ્ટમમાંથી તમામ હિસાબી રજીસ્ટર અને આંકડાઓ ખાલી કરવામાં આવ્યા છે (સભ્યો સચવાયા છે)."
+    }
+  ],
+  "targetAccounts": [
+    "પિતૃ પક્ષ ખાતું (પિતાજી)",
+    "માતાજીનું ખાતું",
+    "પત્નીનું ખાતું",
+    "મોટા દાદીનું ખાતું",
+    "NILAM PRAJAPATI",
+    "HETAL"
+  ],
+  "hanumanFace": "/api/image/hanuman-face",
+  "hanumanFull": "/api/image/hanuman-full",
+  "hanumanTurban": "/api/image/hanuman-turban",
+  "groupPhoto": "/api/image/group-photo"
+}
