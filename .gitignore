@@ -28,3 +28,19 @@ pubspec.lock
 
 ## Logs
 *.log
+
+# Sensitive / local env
+.env
+backend/.env
+*.env.local
+
+# Lockfiles (commit only if you want deterministic installs)
+package-lock.json
+**/package-lock.json
+
+# Mobile/IDE metadata
+mobile/.metadata
+
+# WhatsApp exports or other large user data
+WhatsApp Unknown*/
+
