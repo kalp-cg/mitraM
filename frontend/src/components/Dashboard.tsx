@@ -45,6 +45,12 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
     0
   );
 
+  // Sum expense across all configured years
+  const totalExpenseAllYears = members.reduce(
+    (sum, m) => sum + yearKeys.reduce((mSum, key) => mSum + (m[key]?.expense || 0), 0),
+    0
+  );
+
   // Auto-calculate holdings: Capital - Expense for each member (remaining in pool)
   const totalOutstanding = members.reduce(
     (sum, m) => {
@@ -69,8 +75,8 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
   const pctChange = totalCapPrev === 0 ? (totalCapCurrent === 0 ? 0 : 100) : Math.round(((totalCapCurrent - totalCapPrev) / Math.abs(totalCapPrev)) * 100);
   // Compute year-specific IPO adjustments for Available Capital (Mudi) card
   const cyTrades = (ipoTrades || []).filter(t => t.year === cy);
-  const cyActiveInvested = cyTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0);
-  const cyRealizedProfitLoss = cyTrades.filter(t => t.status === 'sold').reduce((s, t) => s + ((t.sellPrice || 0) - (t.buyPrice || 0)), 0);
+  const cyActiveInvested = cyTrades.filter(t => t.status === 'holding').reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
+  const cyRealizedProfitLoss = cyTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (((t.sellPrice || 0) - (t.buyPrice || 0)) * (t.quantity || 1)), 0);
 
   return (
     <div className="space-y-8 select-none font-sans">
@@ -117,7 +123,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div>
               <p className="text-amber-900/60 font-medium text-sm">કુલ જમા રકમ (તમામ વર્ષ)</p>
               <h3 className="text-3xl font-extrabold text-amber-950 mt-2.5 font-sans tracking-tight">
-                ₹ {Math.max(0, totalCapitalAllYears - (ipoSummary?.activeInvested || 0) + (ipoSummary?.totalProfitLoss || 0)).toLocaleString("en-IN")}
+                ₹ {Math.max(0, totalCapitalAllYears - totalExpenseAllYears - (ipoSummary?.activeInvested || 0) + (ipoSummary?.totalProfitLoss || 0)).toLocaleString("en-IN")}
               </h3>
               <p className="text-xs text-emerald-600 font-semibold mt-3 flex items-center gap-1">
                 <span>📈</span> ગયા વર્ષ કરતા {pctChange}% બદલાવ
@@ -143,7 +149,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div>
               <p className="text-amber-900/60 font-medium text-sm">બાકી રકમ (હોલ્ડિંગ)</p>
               <h3 className="text-3xl font-extrabold text-[#991B1B] mt-2.5 font-sans tracking-tight">
-                ₹ {totalOutstanding.toLocaleString("en-IN")}
+                ₹ {Math.max(0, totalOutstanding - cyActiveInvested + cyRealizedProfitLoss).toLocaleString("en-IN")}
               </h3>
               <p className="text-xs text-rose-600 font-semibold mt-3 flex items-center gap-1">
                 <span>⚠️</span> {countWithRemaining} સભ્યોની બાકી હોલ્ડિંગ ચૂકવણી
