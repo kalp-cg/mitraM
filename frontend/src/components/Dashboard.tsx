@@ -18,7 +18,19 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
 
   const yearKeys = FINANCIAL_YEARS.map(y => y.id);
   const cy = currentYear || 'year2026';
-  const holdingKey = `holding${cy.replace("year", "")}`;
+  const activeMembersCount = members.filter((m) => m.status === "ACTIVE").length;
+
+  const cyTrades = (ipoTrades || []).filter(t => t.year === cy);
+  const cyActiveInvested = cyTrades.filter(t => t.status === 'holding').reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
+  const cyRealizedProfitLoss = cyTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (((t.sellPrice || 0) - (t.buyPrice || 0)) * (t.quantity || 1)), 0);
+  const ipoHoldingSharePerMember = activeMembersCount > 0 ? cyActiveInvested / activeMembersCount : 0;
+  const ipoProfitLossSharePerMember = activeMembersCount > 0 ? cyRealizedProfitLoss / activeMembersCount : 0;
+
+  const getMemberLiveHolding = (member: Member) => {
+    const capVal = member[cy]?.capital || 0;
+    const expVal = member[cy]?.expense || 0;
+    return Math.max(0, capVal - expVal - ipoHoldingSharePerMember + ipoProfitLossSharePerMember);
+  };
 
   // Filter members on search term + quick filters
   let finalMembers = members.filter(
@@ -28,7 +40,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
   );
 
   if (memberFilter === 'due') {
-    finalMembers = finalMembers.filter((m) => (m[holdingKey] || 0) > 0);
+    finalMembers = finalMembers.filter((m) => getMemberLiveHolding(m) > 0);
   } else if (memberFilter === 'high_capital') {
     finalMembers = finalMembers.filter((m) => {
       const tot = yearKeys.reduce((sum, key) => sum + (m[key]?.capital || 0), 0);
@@ -37,7 +49,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
   }
 
   // Dynamic status calculations
-  const totalMembersCount = members.filter((m) => m.status === "ACTIVE").length;
+  const totalMembersCount = activeMembersCount;
 
   // Sum capital across all configured years
   const totalCapitalAllYears = members.reduce(
@@ -51,16 +63,9 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
     0
   );
 
-  // Compute percent change vs previous year (if present)
-  const cyIndex = FINANCIAL_YEARS.findIndex(y => y.id === cy);
-  const prevYearId = cyIndex > 0 ? FINANCIAL_YEARS[cyIndex - 1].id : null;
-  const totalCapCurrent = members.reduce((sum, m) => sum + (m[cy]?.capital || 0), 0);
-  const totalCapPrev = prevYearId ? members.reduce((sum, m) => sum + (m[prevYearId]?.capital || 0), 0) : 0;
-  const pctChange = totalCapPrev === 0 ? (totalCapCurrent === 0 ? 0 : 100) : Math.round(((totalCapCurrent - totalCapPrev) / Math.abs(totalCapPrev)) * 100);
-  // Compute year-specific IPO adjustments for Available Capital (Mudi) card
-  const cyTrades = (ipoTrades || []).filter(t => t.year === cy);
-  const cyActiveInvested = cyTrades.filter(t => t.status === 'holding').reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
-  const cyRealizedProfitLoss = cyTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (((t.sellPrice || 0) - (t.buyPrice || 0)) * (t.quantity || 1)), 0);
+  const totalIpoHolding = ipoSummary?.activeInvested || 0;
+  const totalRealizedProfitLoss = ipoSummary?.totalProfitLoss || 0;
+  const availableHoldingAmount = Math.max(0, totalCapitalAllYears - totalExpenseAllYears - totalIpoHolding + totalRealizedProfitLoss);
 
   return (
     <div className="space-y-8 select-none font-sans">
@@ -98,23 +103,23 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
           </div>
         </div>
 
-        {/* KPI Card 2: Total Deposits */}
+        {/* KPI Card 2: Available Holding Amount */}
         <div className="bg-white p-6 rounded-2xl border-l-4 border-l-emerald-500 border border-amber-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative overflow-hidden">
           <div className="absolute top-2 right-2 text-emerald-100 font-bold font-mono text-5xl select-none opacity-30 mt-2">
-            મુડી
+            હોલ્ડ
           </div>
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-amber-900/60 font-medium text-sm">કુલ જમા રકમ (તમામ વર્ષ)</p>
+              <p className="text-amber-900/60 font-medium text-sm">ઉપલબ્ધ હોલ્ડિંગ રકમ</p>
               <h3 className="text-3xl font-extrabold text-amber-950 mt-2.5 font-sans tracking-tight">
-                ₹ {totalCapitalAllYears.toLocaleString("en-IN")}
+                ₹ {availableHoldingAmount.toLocaleString("en-IN")}
               </h3>
               <p className="text-xs text-emerald-600 font-semibold mt-3 flex items-center gap-1">
-                <span>📈</span> ગયા વર્ષ કરતા {pctChange}% બદલાવ
+                <span>📈</span> કુલ જમા ₹{totalCapitalAllYears.toLocaleString("en-IN")} માંથી ખર્ચ/IPO બાદ
               </p>
-              {ipoSummary && ipoSummary.activeInvested > 0 && (
+              {totalIpoHolding > 0 && (
                 <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md w-fit mt-2">
-                  <span>📦</span> ₹{ipoSummary.activeInvested.toLocaleString("en-IN")} શેર હોલ્ડિંગમાં રોકાયેલ
+                  <span>📦</span> ₹{totalIpoHolding.toLocaleString("en-IN")} IPO/શેર હોલ્ડિંગમાં રોકાયેલ
                 </p>
               )}
             </div>
@@ -199,7 +204,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
                   : 'bg-white text-red-700 border-red-100 hover:bg-red-50/50'
                 }`}
             >
-              બાકી હોલ્ડિંગ વાળા ({members.filter(m => (m[holdingKey] || 0) > 0).length})
+              હોલ્ડિંગ વાળા ({members.filter(m => getMemberLiveHolding(m) > 0).length})
             </button>
             <button
               onClick={() => setMemberFilter('high_capital')}
@@ -266,7 +271,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
                       <div className="flex justify-between items-center bg-red-50/10 p-2 rounded-lg">
                         <span className="text-amber-800 font-medium">અંતિમ બાકી (હોલ્ડિંગ):</span>
                         {(() => {
-                          const autoHolding = (member[cy]?.capital || 0) - (member[cy]?.expense || 0);
+                          const autoHolding = getMemberLiveHolding(member);
                           return (
                             <span className={`font-bold ${autoHolding > 0 ? "text-amber-700" : "text-emerald-700"}`}>
                               ₹ {autoHolding.toLocaleString("en-IN")}
