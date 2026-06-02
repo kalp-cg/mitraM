@@ -14,7 +14,7 @@ import {
   Notebook
 } from "lucide-react";
 
-import { ActiveTab, Member, MasterRow, AppData, IpoTrade, FINANCIAL_YEARS } from "./types";
+import { ActiveTab, Member, MasterRow, AppData, IpoTrade, FINANCIAL_YEARS, LedgerTransaction } from "./types";
 import Splash from "./components/Splash";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Login from "./components/Login";
@@ -23,6 +23,7 @@ import Dashboard from "./components/Dashboard";
 import Members from "./components/Members";
 import MasterSummary from "./components/MasterSummary";
 import MemberDistribution from "./components/MemberDistribution";
+import AccountsLedger from "./components/AccountsLedger";
 import Reports from "./components/Reports";
 import Settings from "./components/Settings";
 import IpoTracker from "./components/IpoTracker";
@@ -362,12 +363,25 @@ export default function App() {
       nextTargetAccounts = [...nextTargetAccounts, targetAccountName];
     }
 
+    // Record in historical transaction registry
+    const newTx: LedgerTransaction = {
+      id: "tx_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      type: modalType,
+      amount: amountNum,
+      date: formattedDate,
+      targetAccount: targetAccountName || "રોકડ ખાતું (Cash)",
+      memberName: memberObj ? memberObj.nameGu : "અજ્ઞાત સભ્ય",
+      notes: modalNotes.trim() || typeLabel
+    };
+    const updatedTxs = [newTx, ...(appData.transactions || [])];
+
     saveAppData({
       ...appData,
       members: updatedMembers,
       masterRows: updatedMasterRows,
       recentLogs: updatedLogs,
-      targetAccounts: nextTargetAccounts
+      targetAccounts: nextTargetAccounts,
+      transactions: updatedTxs
     });
 
     // Reset Form & Close
@@ -444,12 +458,25 @@ export default function App() {
       nextTargetAccounts = [...nextTargetAccounts, targetAccountName];
     }
 
+    // Record in historical transaction registry
+    const newTx: LedgerTransaction = {
+      id: "tx_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      type: groupTransactionType,
+      amount: totalAmountNum,
+      date: formattedDate,
+      targetAccount: targetAccountName || "રોકડ ખાતું (Cash)",
+      memberName: "સમૂહ (Group)",
+      notes: groupExpenseTitle.trim() || typeLabel
+    };
+    const updatedTxs = [newTx, ...(appData.transactions || [])];
+
     saveAppData({
       ...appData,
       members: updatedMembers,
       masterRows: updatedMasterRows,
       recentLogs: updatedLogs,
-      targetAccounts: nextTargetAccounts
+      targetAccounts: nextTargetAccounts,
+      transactions: updatedTxs
     });
 
     // Reset Group states & Close
@@ -536,6 +563,13 @@ export default function App() {
             onResetToDefault={handleResetToDefault}
             onUploadBackup={handleUploadBackup}
             currentYear={appData.currentYear}
+          />
+        );
+      case "accounts":
+        return (
+          <AccountsLedger
+            targetAccounts={appData.targetAccounts || []}
+            transactions={appData.transactions || []}
           />
         );
       case "ipo":
@@ -649,6 +683,19 @@ export default function App() {
             >
               <span className="mr-3 text-lg">📈</span>
               <span>IPO ટ્રેડિંગ</span>
+            </button>
+
+            {/* Accounts Ledger Button */}
+            <button
+              onClick={() => { setActiveTab("accounts"); setSelectedMemberId(null); }}
+              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                activeTab === "accounts"
+                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                  : "text-brand-soil hover:bg-brand-lightcream"
+              }`}
+            >
+              <span className="mr-3 text-lg">🏦</span>
+              <span>વ્યવહાર ખાતા</span>
             </button>
 
             {/* Settings Button */}

@@ -159,7 +159,8 @@ router.get('/data', async (req, res) => {
         hanumanTurban: '/api/image/hanuman-turban',
         groupPhoto: '/api/image/group-photo',
         ipoTrades: ipoTrades.map(t => ({ ...t, id: String(t._id) })),
-        ipoSummary
+        ipoSummary,
+        transactions: snapshot.transactions || []
       });
     }
 
@@ -268,7 +269,8 @@ router.get('/data', async (req, res) => {
       targetAccounts: ['પિતૃ પક્ષ ખાતું (પિતાજી)', 'માતાજીનું ખાતું', 'પત્નીનું ખાતું', 'મોટા દાદીનું ખાતું'],
       hanumanFull: '/api/image/hanuman-full',
       ipoTrades: ipoTrades.map(t => ({ ...t, id: String(t._id) })),
-      ipoSummary
+      ipoSummary,
+      transactions: []
     };
 
     res.json(appData);
@@ -298,6 +300,7 @@ router.post('/data', async (req, res) => {
           appDescriptionGu: body.appDescriptionGu || 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
           recentLogs: body.recentLogs || [],
           targetAccounts: body.targetAccounts || [],
+          transactions: body.transactions || [],
         },
       },
       { upsert: true, new: true }
