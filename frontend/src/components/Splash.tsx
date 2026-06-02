@@ -46,7 +46,7 @@ export default function Splash({ onComplete }: SplashProps) {
           >
             {!imgErr ? (
               <img
-                src="/api/image/hanuman-full"
+                src={import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api/image/hanuman-full` : "/api/image/hanuman-full"}
                 alt="Lord Hanuman Dada Blessing"
                 referrerPolicy="no-referrer"
                 onError={() => {

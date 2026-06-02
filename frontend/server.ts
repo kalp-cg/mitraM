@@ -198,6 +198,54 @@ function writeDB(data: any) {
 // Global active sessions log
 let activeSessionsCount = 0;
 
+const BACKEND_URL = process.env.BACKEND_URL;
+
+if (BACKEND_URL) {
+  const backendBase = BACKEND_URL.replace(/\/$/, "");
+  console.log(`Integrated Mode: Routing /api requests to backend at ${backendBase}`);
+  
+  app.all("/api/*", async (req, res) => {
+    try {
+      const targetUrl = `${backendBase}${req.originalUrl}`;
+      const headers: Record<string, string> = {};
+      
+      for (const [key, value] of Object.entries(req.headers)) {
+        if (key.toLowerCase() !== "host" && typeof value === "string") {
+          headers[key] = value;
+        }
+      }
+
+      const fetchOptions: RequestInit = {
+        method: req.method,
+        headers: headers,
+      };
+
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && req.body) {
+        fetchOptions.body = JSON.stringify(req.body);
+        if (!headers["content-type"]) {
+          headers["content-type"] = "application/json";
+        }
+      }
+
+      const backendRes = await fetch(targetUrl, fetchOptions);
+      
+      res.status(backendRes.status);
+      
+      backendRes.headers.forEach((value, key) => {
+        if (key.toLowerCase() !== "content-encoding") {
+          res.setHeader(key, value);
+        }
+      });
+
+      const bodyBuffer = await backendRes.arrayBuffer();
+      res.send(Buffer.from(bodyBuffer));
+    } catch (err: any) {
+      console.error("Proxy error routing to backend:", err);
+      res.status(502).json({ error: "Backend proxy error", details: err.message });
+    }
+  });
+}
+
 // API Endpoints
 app.post("/api/login", (req, res) => {
   const { id, password } = req.body;
