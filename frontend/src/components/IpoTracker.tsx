@@ -474,6 +474,7 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                     type="number"
                     required
                     min="0"
+                    step="any"
                     placeholder="એક શેરનો ખરીદ ભાવ"
                     value={formBuyPrice}
                     onChange={(e) => setFormBuyPrice(e.target.value)}
@@ -623,6 +624,7 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                   type="number"
                   required
                   min="0"
+                  step="any"
                   placeholder="એક શેરનો વેચાણ ભાવ"
                   value={sellPrice}
                   onChange={(e) => setSellPrice(e.target.value)}
