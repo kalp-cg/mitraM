@@ -65,14 +65,14 @@ const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterR
     // Profit = Member Profits + realized IPO Profit/Loss
     if (profitIdx !== -1) updatedRows[profitIdx][col] = sumProfit + realizedProfitLoss;
     
-    // Holding = Member Holdings - active stock investment (money tied up in shares)
-    if (holdingIdx !== -1) updatedRows[holdingIdx][col] = Math.max(0, sumHolding - activeInvested);
+    // Holding = Member Holdings - active stock investment + realized profit/loss
+    if (holdingIdx !== -1) updatedRows[holdingIdx][col] = Math.max(0, sumHolding - activeInvested + realizedProfitLoss);
     
     if (gopiIdx !== -1) updatedRows[gopiIdx][col] = sumGopi;
 
-    // Remaining Amount (Cash Baki) = Income - Pending Expense - active stock investment
+    // Remaining Amount (Cash Baki) = Income - Pending Expense - active stock investment + realized profit/loss
     if (incomeIdx !== -1 && expenseIdx !== -1 && remainingIdx !== -1) {
-      updatedRows[remainingIdx][col] = Math.max(0, (updatedRows[incomeIdx][col] || 0) - (updatedRows[expenseIdx][col] || 0) - activeInvested);
+      updatedRows[remainingIdx][col] = Math.max(0, (updatedRows[incomeIdx][col] || 0) - (updatedRows[expenseIdx][col] || 0) - activeInvested + realizedProfitLoss);
     }
     
     if (grandIdx !== -1) {
@@ -489,6 +489,7 @@ export default function App() {
               setActiveTab(tab);
             }}
             ipoSummary={appData.ipoSummary}
+            ipoTrades={appData.ipoTrades || []}
           />
         );
       case "members":

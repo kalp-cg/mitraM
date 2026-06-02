@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Member, FINANCIAL_YEARS, SystemAudit, IpoSummary } from "../types";
+import { Member, FINANCIAL_YEARS, SystemAudit, IpoSummary, IpoTrade } from "../types";
 import { Users2, Landmark, Clock, FileSpreadsheet, Eye, BarChart3, TrendingUp } from "lucide-react";
 
 interface DashboardProps {
@@ -10,9 +10,10 @@ interface DashboardProps {
   onSelectMember: (id: string) => void;
   onNavigate: (tab: 'members' | 'master_summary' | 'profit' | 'reports' | 'ipo') => void;
   ipoSummary?: IpoSummary;
+  ipoTrades?: IpoTrade[];
 }
 
-export default function Dashboard({ members, searchTerm, recentLogs = [], currentYear, onSelectMember, onNavigate, ipoSummary }: DashboardProps) {
+export default function Dashboard({ members, searchTerm, recentLogs = [], currentYear, onSelectMember, onNavigate, ipoSummary, ipoTrades = [] }: DashboardProps) {
   const [memberFilter, setMemberFilter] = useState<'all' | 'due' | 'high_capital'>('all');
 
   const yearKeys = FINANCIAL_YEARS.map(y => y.id);
@@ -66,6 +67,10 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
   const totalCapCurrent = members.reduce((sum, m) => sum + (m[cy]?.capital || 0), 0);
   const totalCapPrev = prevYearId ? members.reduce((sum, m) => sum + (m[prevYearId]?.capital || 0), 0) : 0;
   const pctChange = totalCapPrev === 0 ? (totalCapCurrent === 0 ? 0 : 100) : Math.round(((totalCapCurrent - totalCapPrev) / Math.abs(totalCapPrev)) * 100);
+  // Compute year-specific IPO adjustments for Available Capital (Mudi) card
+  const cyTrades = (ipoTrades || []).filter(t => t.year === cy);
+  const cyActiveInvested = cyTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0);
+  const cyRealizedProfitLoss = cyTrades.filter(t => t.status === 'sold').reduce((s, t) => s + ((t.sellPrice || 0) - (t.buyPrice || 0)), 0);
 
   return (
     <div className="space-y-8 select-none font-sans">
@@ -133,15 +138,15 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div>
               <p className="text-amber-900/60 font-medium text-sm">બાકી રકમ (હોલ્ડિંગ)</p>
               <h3 className="text-3xl font-extrabold text-[#991B1B] mt-2.5 font-sans tracking-tight">
-                ₹ {Math.max(0, totalOutstanding - (ipoSummary?.activeInvested || 0)).toLocaleString("en-IN")}
+                ₹ {Math.max(0, totalOutstanding - cyActiveInvested + cyRealizedProfitLoss).toLocaleString("en-IN")}
               </h3>
               <div className="mt-3 space-y-1">
                 <p className="text-xs text-rose-600 font-semibold flex items-center gap-1">
                   <span>⚠️</span> {countWithRemaining} સભ્યોની બાકી હોલ્ડિંગ ચૂકવણી
                 </p>
-                {ipoSummary && ipoSummary.activeInvested > 0 && (
+                {cyActiveInvested > 0 && (
                   <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md w-fit">
-                    <span>📦</span> ₹{ipoSummary.activeInvested.toLocaleString("en-IN")} શેર હોલ્ડિંગમાં રોકાયેલ
+                    <span>📦</span> ₹{cyActiveInvested.toLocaleString("en-IN")} શેર હોલ્ડિંગમાં રોકાયેલ
                   </p>
                 )}
               </div>

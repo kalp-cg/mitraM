@@ -53,15 +53,16 @@ export default function MasterSummary({ masterRows, onSaveMasterRows, ipoTrades 
 
       const yearTrades = ipoTrades.filter(t => t.year === yearKey);
       const activeInvested = yearTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0);
+      const realizedProfitLoss = yearTrades.filter(t => t.status === 'sold').reduce((s, t) => s + ((t.sellPrice || 0) - (t.buyPrice || 0)), 0);
       
       if (incomeIdx !== -1 && expenseIdx !== -1 && remainingIdx !== -1) {
-        updated[remainingIdx][col] = Math.max(0, (updated[incomeIdx][col] || 0) - (updated[expenseIdx][col] || 0) - activeInvested);
+        updated[remainingIdx][col] = Math.max(0, (updated[incomeIdx][col] || 0) - (updated[expenseIdx][col] || 0) - activeInvested + realizedProfitLoss);
       }
       
       if (holdingIdx !== -1) {
         const incomeVal = updated[incomeIdx]?.[col] || 0;
         const expenseVal = updated[expenseIdx]?.[col] || 0;
-        updated[holdingIdx][col] = Math.max(0, incomeVal - expenseVal - activeInvested);
+        updated[holdingIdx][col] = Math.max(0, incomeVal - expenseVal - activeInvested + realizedProfitLoss);
       }
 
       if (grandIdx !== -1) {
