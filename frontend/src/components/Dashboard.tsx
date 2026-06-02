@@ -133,11 +133,18 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div>
               <p className="text-amber-900/60 font-medium text-sm">બાકી રકમ (હોલ્ડિંગ)</p>
               <h3 className="text-3xl font-extrabold text-[#991B1B] mt-2.5 font-sans tracking-tight">
-                ₹ {totalOutstanding.toLocaleString("en-IN")}
+                ₹ {Math.max(0, totalOutstanding - (ipoSummary?.activeInvested || 0)).toLocaleString("en-IN")}
               </h3>
-              <p className="text-xs text-rose-600 font-semibold mt-3 flex items-center gap-1">
-                <span>⚠️</span> {countWithRemaining} સભ્યોની બાકી હોલ્ડિંગ ચૂકવણી
-              </p>
+              <div className="mt-3 space-y-1">
+                <p className="text-xs text-rose-600 font-semibold flex items-center gap-1">
+                  <span>⚠️</span> {countWithRemaining} સભ્યોની બાકી હોલ્ડિંગ ચૂકવણી
+                </p>
+                {ipoSummary && ipoSummary.activeInvested > 0 && (
+                  <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md w-fit">
+                    <span>📦</span> ₹{ipoSummary.activeInvested.toLocaleString("en-IN")} શેર હોલ્ડિંગમાં રોકાયેલ
+                  </p>
+                )}
+              </div>
             </div>
             <div className="bg-rose-50 p-3 rounded-xl text-rose-700">
               <Clock className="size-6 stroke-[2px]" />

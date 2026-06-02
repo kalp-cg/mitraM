@@ -27,7 +27,7 @@ import Reports from "./components/Reports";
 import Settings from "./components/Settings";
 import IpoTracker from "./components/IpoTracker";
 
-const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterRow[]): MasterRow[] => {
+const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterRow[], ipoTrades: IpoTrade[] = []): MasterRow[] => {
   const updatedRows = currentMasterRows.map((row) => ({ ...row }));
   
   const incomeIdx = updatedRows.findIndex(r => r.id === "mr1");
@@ -41,11 +41,11 @@ const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterR
   FINANCIAL_YEARS.forEach((yf) => {
     const col = yf.masterKey;
     const yearKey = yf.id;
-    const holdingKey = `holding${yearKey.replace("year", "")}`;
 
     const sumCapital = members.reduce((sum, m) => sum + (m[yearKey]?.capital || 0), 0);
     const sumExpense = members.reduce((sum, m) => sum + (m[yearKey]?.expense || 0), 0);
     const sumProfit = members.reduce((sum, m) => sum + (m[yearKey]?.profit || 0), 0);
+    
     // Auto-calculate holdings: Capital - Expense (remaining in mandal pool)
     const sumHolding = members.reduce((sum, m) => {
       const cap = m[yearKey]?.capital || 0;
@@ -54,15 +54,27 @@ const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterR
     }, 0);
     const sumGopi = members.reduce((sum, m) => sum + (m.gopiMandal || 0), 0);
 
+    // Compute IPO adjustments for this financial year
+    const yearTrades = ipoTrades.filter(t => t.year === yearKey);
+    const activeInvested = yearTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0);
+    const realizedProfitLoss = yearTrades.filter(t => t.status === 'sold').reduce((s, t) => s + ((t.sellPrice || 0) - (t.buyPrice || 0)), 0);
+
     if (incomeIdx !== -1) updatedRows[incomeIdx][col] = sumCapital;
     if (expenseIdx !== -1) updatedRows[expenseIdx][col] = sumExpense;
-    if (profitIdx !== -1) updatedRows[profitIdx][col] = sumProfit;
-    if (holdingIdx !== -1) updatedRows[holdingIdx][col] = sumHolding;
+    
+    // Profit = Member Profits + realized IPO Profit/Loss
+    if (profitIdx !== -1) updatedRows[profitIdx][col] = sumProfit + realizedProfitLoss;
+    
+    // Holding = Member Holdings - active stock investment (money tied up in shares)
+    if (holdingIdx !== -1) updatedRows[holdingIdx][col] = Math.max(0, sumHolding - activeInvested);
+    
     if (gopiIdx !== -1) updatedRows[gopiIdx][col] = sumGopi;
 
+    // Remaining Amount (Cash Baki) = Income - Pending Expense - active stock investment
     if (incomeIdx !== -1 && expenseIdx !== -1 && remainingIdx !== -1) {
-      updatedRows[remainingIdx][col] = (updatedRows[incomeIdx][col] || 0) - (updatedRows[expenseIdx][col] || 0);
+      updatedRows[remainingIdx][col] = Math.max(0, (updatedRows[incomeIdx][col] || 0) - (updatedRows[expenseIdx][col] || 0) - activeInvested);
     }
+    
     if (grandIdx !== -1) {
       updatedRows[grandIdx][col] = 
         (updatedRows[remainingIdx]?.[col] || 0) + 
@@ -125,7 +137,11 @@ export default function App() {
       const res = await fetch("/api/data");
       if (res.ok) {
         const data = await res.json();
-        setAppData(data);
+        const synchronizedMasterRows = syncMasterRowsWithMembers(data.members || [], data.masterRows || [], data.ipoTrades || []);
+        setAppData({
+          ...data,
+          masterRows: synchronizedMasterRows
+        });
         const timeStr = new Date().toLocaleTimeString("gu-IN", {
           hour: "numeric",
           minute: "2-digit",
@@ -191,7 +207,7 @@ export default function App() {
 
   const handleSaveMembers = (updatedMembers: Member[]) => {
     if (!appData) return;
-    const synchronizedMasterRows = syncMasterRowsWithMembers(updatedMembers, appData.masterRows);
+    const synchronizedMasterRows = syncMasterRowsWithMembers(updatedMembers, appData.masterRows, appData.ipoTrades || []);
     const nextData = { 
       ...appData, 
       members: updatedMembers, 
@@ -317,7 +333,7 @@ export default function App() {
     });
 
     // Automatically recalculate masterRows using the synchronized helper
-    const updatedMasterRows = syncMasterRowsWithMembers(updatedMembers, appData.masterRows);
+    const updatedMasterRows = syncMasterRowsWithMembers(updatedMembers, appData.masterRows, appData.ipoTrades || []);
 
     const memberObj = appData.members.find((m) => m.id === modalMemberId);
     const yrObj = FINANCIAL_YEARS.find((y) => y.id === modalYear);
@@ -400,7 +416,7 @@ export default function App() {
     });
 
     // 2. Automatically recalculate masterRows using the synchronized helper
-    const updatedMasterRows = syncMasterRowsWithMembers(updatedMembers, appData.masterRows);
+    const updatedMasterRows = syncMasterRowsWithMembers(updatedMembers, appData.masterRows, appData.ipoTrades || []);
 
     const yrObj = FINANCIAL_YEARS.find((y) => y.id === modalYear);
     const typeLabel = groupTransactionType === "capital" ? "મુડી જમા" : groupTransactionType === "expense" ? "ખર્ચ બાદબાકી" : "નફો વિતરણ";
@@ -491,6 +507,7 @@ export default function App() {
             masterRows={appData.masterRows}
             onSaveMasterRows={handleSaveMasterRows}
             currentYear={appData.currentYear}
+            ipoTrades={appData.ipoTrades || []}
           />
         );
       case "profit":

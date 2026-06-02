@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { MasterRow, FINANCIAL_YEARS } from "../types";
+import { MasterRow, FINANCIAL_YEARS, IpoTrade } from "../types";
 import { Printer, Edit, Check } from "lucide-react";
 
 interface MasterSummaryProps {
   masterRows: MasterRow[];
   onSaveMasterRows: (updated: MasterRow[]) => void;
   currentYear?: string;
+  ipoTrades?: IpoTrade[];
 }
 
-export default function MasterSummary({ masterRows, onSaveMasterRows }: MasterSummaryProps) {
+export default function MasterSummary({ masterRows, onSaveMasterRows, ipoTrades = [] }: MasterSummaryProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedRows, setEditedRows] = useState<MasterRow[]>([]);
   
@@ -48,9 +49,21 @@ export default function MasterSummary({ masterRows, onSaveMasterRows }: MasterSu
     // Recalculate computed rows across all years
     FINANCIAL_YEARS.forEach((yf) => {
       const col = yf.masterKey;
+      const yearKey = yf.id;
+
+      const yearTrades = ipoTrades.filter(t => t.year === yearKey);
+      const activeInvested = yearTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0);
+      
       if (incomeIdx !== -1 && expenseIdx !== -1 && remainingIdx !== -1) {
-        updated[remainingIdx][col] = (updated[incomeIdx][col] || 0) - (updated[expenseIdx][col] || 0);
+        updated[remainingIdx][col] = Math.max(0, (updated[incomeIdx][col] || 0) - (updated[expenseIdx][col] || 0) - activeInvested);
       }
+      
+      if (holdingIdx !== -1) {
+        const incomeVal = updated[incomeIdx]?.[col] || 0;
+        const expenseVal = updated[expenseIdx]?.[col] || 0;
+        updated[holdingIdx][col] = Math.max(0, incomeVal - expenseVal - activeInvested);
+      }
+
       if (grandIdx !== -1) {
         updated[grandIdx][col] = 
           (updated[remainingIdx]?.[col] || 0) + 
