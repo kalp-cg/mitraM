@@ -16,6 +16,7 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
   const [showSellModal, setShowSellModal] = useState(false);
   const [sellTradeId, setSellTradeId] = useState<string | null>(null);
   const [sellPrice, setSellPrice] = useState("");
+  const [sellQuantity, setSellQuantity] = useState("");
   const [sellDate, setSellDate] = useState(() => {
     const d = new Date();
     const offset = d.getTimezoneOffset();
@@ -77,22 +78,50 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
   const handleSellSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sellTradeId) return;
-    const sellPriceNum = parseFloat(sellPrice) || 0;
+    const t = ipoTrades.find(x => x.id === sellTradeId);
+    if (!t) return;
 
-    onUpdateTrade(sellTradeId, {
-      sellPrice: sellPriceNum,
-      sellDate: sellDate,
-      status: 'sold',
-    });
+    const sellPriceNum = parseFloat(sellPrice) || 0;
+    const sellQtyNum = parseInt(sellQuantity) || t.quantity;
+
+    if (sellQtyNum < t.quantity) {
+      // Partial Sale split!
+      onUpdateTrade(t.id, {
+        quantity: sellQtyNum,
+        sellPrice: sellPriceNum,
+        sellDate: sellDate,
+        status: 'sold',
+      });
+      onAddTrade({
+        shareName: t.shareName,
+        buyDate: t.buyDate,
+        buyPrice: t.buyPrice,
+        sellPrice: 0,
+        quantity: t.quantity - sellQtyNum,
+        dematAccount: t.dematAccount,
+        status: 'holding',
+        notes: t.notes ? `${t.notes} (બાકી વધેલ શેર)` : 'બાકી વધેલ શેર',
+        year: t.year,
+      });
+    } else {
+      // Sell all
+      onUpdateTrade(t.id, {
+        sellPrice: sellPriceNum,
+        sellDate: sellDate,
+        status: 'sold',
+      });
+    }
 
     setSellTradeId(null);
     setSellPrice("");
+    setSellQuantity("");
     setShowSellModal(false);
   };
 
   const openSellModal = (trade: IpoTrade) => {
     setSellTradeId(trade.id);
     setSellPrice("");
+    setSellQuantity(String(trade.quantity));
     setShowSellModal(true);
   };
 
@@ -632,28 +661,63 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-brand-soil">વેચાણ તારીખ *</label>
-                <input
-                  type="date"
-                  required
-                  value={sellDate}
-                  onChange={(e) => setSellDate(e.target.value)}
-                  className="w-full bg-brand-cream border border-brand-border rounded-xl px-3 py-2.5 text-xs text-brand-soil font-bold outline-none"
-                />
+              {/* Quantity to Sell & Sell Date */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-brand-soil">વેચવાનો જથ્થો (Qty to Sell) *</label>
+                  {sellTradeId && (() => {
+                    const t = ipoTrades.find(x => x.id === sellTradeId);
+                    return (
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        max={t ? t.quantity : undefined}
+                        value={sellQuantity}
+                        onChange={(e) => setSellQuantity(e.target.value)}
+                        className="w-full bg-brand-cream border border-brand-border rounded-xl px-3.5 py-2.5 text-xs text-brand-soil font-bold"
+                      />
+                    );
+                  })()}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-brand-soil">વેચાણ તારીખ *</label>
+                  <input
+                    type="date"
+                    required
+                    value={sellDate}
+                    onChange={(e) => setSellDate(e.target.value)}
+                    className="w-full bg-brand-cream border border-brand-border rounded-xl px-3 py-2.5 text-xs text-brand-soil font-bold outline-none"
+                  />
+                </div>
               </div>
 
               {/* Live P&L Preview */}
               {sellPrice && sellTradeId && (() => {
                 const t = ipoTrades.find(x => x.id === sellTradeId);
                 if (!t) return null;
-                const totalBuy = (t.buyPrice || 0) * (t.quantity || 1);
-                const totalSell = (parseFloat(sellPrice) || 0) * (t.quantity || 1);
+                const sellQtyNum = parseInt(sellQuantity) || t.quantity;
+                const totalBuy = (t.buyPrice || 0) * sellQtyNum;
+                const totalSell = (parseFloat(sellPrice) || 0) * sellQtyNum;
                 const pl = totalSell - totalBuy;
+                const remainingQty = t.quantity - sellQtyNum;
                 return (
                   <div className={`rounded-xl p-3 text-center space-y-1 border ${pl >= 0 ? 'bg-emerald-50/70 border-emerald-200/50' : 'bg-red-50/70 border-red-200/50'}`}>
                     <p className="text-[10px] font-bold text-amber-950 uppercase tracking-wider">અંદાજિત હિસાબ (Auto-Calculated P&L):</p>
-                    <p className="text-xs text-amber-900 font-bold">કુલ રોકાણ: ₹{totalBuy.toLocaleString("en-IN")} → કુલ વેચાણ: ₹{totalSell.toLocaleString("en-IN")}</p>
+                    <p className="text-xs text-amber-900 font-semibold">
+                      વેચાણ: {sellQtyNum} Qty • original: ₹{t.buyPrice} → sale: ₹{parseFloat(sellPrice) || 0}
+                    </p>
+                    <div className="flex flex-col items-center gap-0.5 py-1">
+                      <p className="text-[10px] text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded w-fit">
+                        કુલ રોકાણ: ₹{totalBuy.toLocaleString("en-IN")} → કુલ વેચાણ: ₹{totalSell.toLocaleString("en-IN")}
+                      </p>
+                      {remainingQty > 0 && (
+                        <p className="text-[9px] text-amber-600 font-bold bg-amber-50/50 px-2 py-0.5 rounded w-fit border border-amber-200/30">
+                          📦 {remainingQty} શેર હોલ્ડિંગમાં ચાલુ રહેશે (બાકી વધેલ શેર)
+                        </p>
+                      )}
+                    </div>
                     <p className={`text-base font-extrabold mt-1 ${pl >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                       {pl >= 0 ? '+' : ''}₹{pl.toLocaleString("en-IN")}
                     </p>
