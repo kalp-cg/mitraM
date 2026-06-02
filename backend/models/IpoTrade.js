@@ -55,7 +55,7 @@ const ipoTradeSchema = new mongoose.Schema({
 // Pre-save: auto-calculate profit/loss
 ipoTradeSchema.pre('save', function(next) {
   if (this.status === 'sold' && this.sellPrice > 0) {
-    this.profitLoss = this.sellPrice - this.buyPrice;
+    this.profitLoss = (this.sellPrice - this.buyPrice) * (this.quantity || 1);
   } else {
     this.profitLoss = 0;
   }

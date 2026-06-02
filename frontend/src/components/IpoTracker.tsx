@@ -292,13 +292,16 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                 </tr>
               ) : (
                 filteredTrades.map((trade, idx) => {
-                  runningBalance += trade.buyPrice;
+                  const totalBuy = (trade.buyPrice || 0) * (trade.quantity || 1);
+                  const totalSell = (trade.sellPrice || 0) * (trade.quantity || 1);
+                  
+                  runningBalance += totalBuy;
                   if (trade.status === 'sold') {
-                    runningBalance -= trade.buyPrice;
-                    runningBalance += (trade.sellPrice || 0);
+                    runningBalance -= totalBuy;
+                    runningBalance += totalSell;
                   }
 
-                  const pl = trade.status === 'sold' ? (trade.sellPrice - trade.buyPrice) : 0;
+                  const pl = trade.status === 'sold' ? (totalSell - totalBuy) : 0;
 
                   return (
                     <tr key={trade.id} className="hover:bg-amber-50/30 transition-colors">
@@ -310,13 +313,21 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                         )}
                       </td>
                       <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">{formatDate(trade.buyDate)}</td>
-                      <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">₹{(trade.buyPrice || 0).toLocaleString("en-IN")}</td>
+                      <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
+                        <div className="font-extrabold">₹{(trade.buyPrice || 0).toLocaleString("en-IN")}</div>
+                        <div className="text-[10px] text-amber-600/80 font-bold">કુલ: ₹{totalBuy.toLocaleString("en-IN")}</div>
+                      </td>
                       <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">{trade.quantity}</td>
                       <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
                         {trade.status === 'sold' ? formatDate(trade.sellDate) : '—'}
                       </td>
                       <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
-                        {trade.status === 'sold' ? `₹${(trade.sellPrice || 0).toLocaleString("en-IN")}` : '—'}
+                        {trade.status === 'sold' ? (
+                          <>
+                            <div className="font-extrabold">₹{(trade.sellPrice || 0).toLocaleString("en-IN")}</div>
+                            <div className="text-[10px] text-emerald-600/80 font-bold">કુલ: ₹{totalSell.toLocaleString("en-IN")}</div>
+                          </>
+                        ) : '—'}
                       </td>
                       <td className={`py-3 px-4 text-right font-mono font-extrabold border-r border-amber-100/50 ${
                         trade.status !== 'sold' ? 'text-amber-500' : pl >= 0 ? 'text-emerald-700' : 'text-red-700'
@@ -373,21 +384,21 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                 <tr className="bg-amber-50/35 border-t-2 border-amber-200 font-extrabold text-amber-950">
                   <td className="py-4 px-4 border-r border-amber-100" colSpan={3}>સરવાળો (Total)</td>
                   <td className="py-4 px-4 text-right font-mono border-r border-amber-100">
-                    ₹{filteredTrades.reduce((s, t) => s + (t.buyPrice || 0), 0).toLocaleString("en-IN")}
+                    ₹{filteredTrades.reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0).toLocaleString("en-IN")}
                   </td>
                   <td className="py-4 px-4 text-right font-mono border-r border-amber-100">
                     {filteredTrades.reduce((s, t) => s + (t.quantity || 0), 0)}
                   </td>
                   <td className="py-4 px-4 border-r border-amber-100"></td>
                   <td className="py-4 px-4 text-right font-mono border-r border-amber-100">
-                    ₹{filteredTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (t.sellPrice || 0), 0).toLocaleString("en-IN")}
+                    ₹{filteredTrades.filter(t => t.status === 'sold').reduce((s, t) => s + ((t.sellPrice || 0) * (t.quantity || 1)), 0).toLocaleString("en-IN")}
                   </td>
                   <td className={`py-4 px-4 text-right font-mono border-r border-amber-100 ${
-                    filteredTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (t.profitLoss || (t.sellPrice - t.buyPrice)), 0) >= 0
+                    filteredTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (t.profitLoss || ((t.sellPrice - t.buyPrice) * t.quantity)), 0) >= 0
                       ? 'text-emerald-700' : 'text-red-700'
                   }`}>
                     {(() => {
-                      const totalPL = filteredTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (t.sellPrice - t.buyPrice), 0);
+                      const totalPL = filteredTrades.filter(t => t.status === 'sold').reduce((s, t) => s + ((t.sellPrice - t.buyPrice) * t.quantity), 0);
                       return `${totalPL >= 0 ? '+' : ''}₹${totalPL.toLocaleString("en-IN")}`;
                     })()}
                   </td>
@@ -458,12 +469,12 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
               {/* Buy Price & Quantity */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-brand-soil">ખરીદ ભાવ (₹) *</label>
+                  <label className="block text-xs font-bold text-brand-soil">ખરીદ ભાવ (એક શેરનો ભાવ) *</label>
                   <input
                     type="number"
                     required
                     min="0"
-                    placeholder="કુલ ખરીદ રકમ"
+                    placeholder="એક શેરનો ખરીદ ભાવ"
                     value={formBuyPrice}
                     onChange={(e) => setFormBuyPrice(e.target.value)}
                     className="w-full bg-brand-cream border border-brand-border rounded-xl px-3.5 py-2.5 text-xs text-brand-soil font-bold"
@@ -480,6 +491,16 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                   />
                 </div>
               </div>
+
+              {/* Dynamic Live Multiplication Helper */}
+              {formBuyPrice && (
+                <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-3 text-center">
+                  <p className="text-[10px] font-bold text-amber-950 uppercase tracking-wider">સ્વયં-સંચાલિત ગણતરી (Auto-Calculated Total):</p>
+                  <p className="text-xs font-extrabold text-amber-900 mt-1">
+                    ₹{(parseFloat(formBuyPrice) || 0).toLocaleString("en-IN")} × {parseInt(formQuantity) || 1} = <span className="text-sm text-brand-orange font-mono font-black">₹{((parseFloat(formBuyPrice) || 0) * (parseInt(formQuantity) || 1)).toLocaleString("en-IN")}</span>
+                  </p>
+                </div>
+              )}
 
               {/* Quick Price Presets */}
               <div className="flex flex-wrap gap-1.5">
@@ -597,12 +618,12 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
               })()}
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-brand-soil">વેચાણ ભાવ (₹) *</label>
+                <label className="block text-xs font-bold text-brand-soil">વેચાણ ભાવ (એક શેરનો ભાવ) *</label>
                 <input
                   type="number"
                   required
                   min="0"
-                  placeholder="વેચાણ રકમ લખો"
+                  placeholder="એક શેરનો વેચાણ ભાવ"
                   value={sellPrice}
                   onChange={(e) => setSellPrice(e.target.value)}
                   className="w-full bg-brand-cream border border-brand-border rounded-xl px-3.5 py-2.5 text-xs text-brand-soil font-bold"
@@ -624,11 +645,14 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
               {sellPrice && sellTradeId && (() => {
                 const t = ipoTrades.find(x => x.id === sellTradeId);
                 if (!t) return null;
-                const pl = (parseFloat(sellPrice) || 0) - t.buyPrice;
+                const totalBuy = (t.buyPrice || 0) * (t.quantity || 1);
+                const totalSell = (parseFloat(sellPrice) || 0) * (t.quantity || 1);
+                const pl = totalSell - totalBuy;
                 return (
                   <div className={`rounded-xl p-3 text-center space-y-1 border ${pl >= 0 ? 'bg-emerald-50/70 border-emerald-200/50' : 'bg-red-50/70 border-red-200/50'}`}>
-                    <p className="text-[10px] font-bold text-amber-950">અંદાજિત P&L:</p>
-                    <p className={`text-lg font-extrabold ${pl >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                    <p className="text-[10px] font-bold text-amber-950 uppercase tracking-wider">અંદાજિત હિસાબ (Auto-Calculated P&L):</p>
+                    <p className="text-xs text-amber-900 font-bold">કુલ રોકાણ: ₹{totalBuy.toLocaleString("en-IN")} → કુલ વેચાણ: ₹{totalSell.toLocaleString("en-IN")}</p>
+                    <p className={`text-base font-extrabold mt-1 ${pl >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                       {pl >= 0 ? '+' : ''}₹{pl.toLocaleString("en-IN")}
                     </p>
                   </div>

@@ -25,12 +25,12 @@ router.get('/summary', async (req, res) => {
   try {
     const trades = await IpoTrade.find().lean();
 
-    const totalInvested = trades.reduce((sum, t) => sum + (t.buyPrice || 0), 0);
-    const totalSellValue = trades.filter(t => t.status === 'sold').reduce((sum, t) => sum + (t.sellPrice || 0), 0);
+    const totalInvested = trades.reduce((sum, t) => sum + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
+    const totalSellValue = trades.filter(t => t.status === 'sold').reduce((sum, t) => sum + ((t.sellPrice || 0) * (t.quantity || 1)), 0);
     const totalProfitLoss = trades.filter(t => t.status === 'sold').reduce((sum, t) => sum + (t.profitLoss || 0), 0);
     const activeCount = trades.filter(t => t.status === 'holding').length;
     const soldCount = trades.filter(t => t.status === 'sold').length;
-    const activeInvested = trades.filter(t => t.status === 'holding').reduce((sum, t) => sum + (t.buyPrice || 0), 0);
+    const activeInvested = trades.filter(t => t.status === 'holding').reduce((sum, t) => sum + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
 
     res.json({
       totalInvested,

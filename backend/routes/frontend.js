@@ -137,10 +137,10 @@ router.get('/data', async (req, res) => {
       // Load IPO summary
       const ipoTrades = await IpoTrade.find().sort({ buyDate: -1 }).lean();
       const ipoSummary = {
-        totalInvested: ipoTrades.reduce((s, t) => s + (t.buyPrice || 0), 0),
+        totalInvested: ipoTrades.reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0),
         totalProfitLoss: ipoTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (t.profitLoss || 0), 0),
         activeCount: ipoTrades.filter(t => t.status === 'holding').length,
-        activeInvested: ipoTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0),
+        activeInvested: ipoTrades.filter(t => t.status === 'holding').reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0),
         totalTrades: ipoTrades.length
       };
 
@@ -248,10 +248,10 @@ router.get('/data', async (req, res) => {
     // Load IPO summary for non-snapshot path too
     const ipoTrades = await IpoTrade.find().sort({ buyDate: -1 }).lean();
     const ipoSummary = {
-      totalInvested: ipoTrades.reduce((s, t) => s + (t.buyPrice || 0), 0),
+      totalInvested: ipoTrades.reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0),
       totalProfitLoss: ipoTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (t.profitLoss || 0), 0),
       activeCount: ipoTrades.filter(t => t.status === 'holding').length,
-      activeInvested: ipoTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0),
+      activeInvested: ipoTrades.filter(t => t.status === 'holding').reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0),
       totalTrades: ipoTrades.length
     };
 
