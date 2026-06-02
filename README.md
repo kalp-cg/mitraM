@@ -54,7 +54,7 @@ npm test
 - Run frontend dev server (dev server uses `tsx` for TypeScript execution)
 
 ```bash
-cd "શુભ-વ્યાપાર (1)"
+cd frontend
 npm install
 npm run dev
 ```
@@ -121,7 +121,7 @@ node server.js   # or npm start (see backend/package.json)
 
 Frontend (dev)
 ```bash
-cd "શુભ-વ્યાપાર (1)"
+cd frontend
 npm install
 npm run dev    # runs tsx server.ts (dev server + static frontend)
 ```
@@ -173,7 +173,7 @@ Contributing and commits
 આર્કિટેક્ચર
 - `mobile/` — Flutter મોબાઇલ એપ
 - `backend/` — Node.js + Express API અને સેવાઓ
-- `શુભ-વ્યાપાર (1)/` — વેબ ફ્રન્ટએન્ડ (React + Vite)
+ - `frontend/` — વેબ ફ્રન્ટએન્ડ (React + Vite)
 
 સ્થાપના અને ચલાવવાની રીત
 
