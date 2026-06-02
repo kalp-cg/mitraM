@@ -9,6 +9,82 @@ const IpoTrade = require('../models/IpoTrade');
 
 const router = express.Router();
 
+const syncMasterRowsWithMembersBackend = (members, currentMasterRows, ipoTrades) => {
+  const updatedRows = (currentMasterRows || []).map((row) => ({ ...row }));
+  
+  const incomeIdx = updatedRows.findIndex(r => r.id === "mr1");
+  const expenseIdx = updatedRows.findIndex(r => r.id === "mr2");
+  const remainingIdx = updatedRows.findIndex(r => r.id === "mr3");
+  const profitIdx = updatedRows.findIndex(r => r.id === "mr4");
+  const holdingIdx = updatedRows.findIndex(r => r.id === "mr5");
+  const gopiIdx = updatedRows.findIndex(r => r.id === "mr6");
+  const grandIdx = updatedRows.findIndex(r => r.id === "mr7");
+
+  const financialYears = [
+    { id: "year2023", masterKey: "year23" },
+    { id: "year2024", masterKey: "year24" },
+    { id: "year2025", masterKey: "year25" },
+    { id: "year2026", masterKey: "year26" },
+    { id: "year2027", masterKey: "year27" },
+    { id: "year2028", masterKey: "year28" },
+    { id: "year2029", masterKey: "year29" },
+    { id: "year2030", masterKey: "year30" },
+    { id: "year2031", masterKey: "year31" },
+    { id: "year2032", masterKey: "year32" },
+    { id: "year2033", masterKey: "year33" },
+    { id: "year2034", masterKey: "year34" },
+    { id: "year2035", masterKey: "year35" }
+  ];
+
+  financialYears.forEach((yf) => {
+    const col = yf.masterKey;
+    const yearKey = yf.id;
+
+    const sumCapital = (members || []).reduce((sum, m) => sum + (m[yearKey]?.capital || 0), 0);
+    const sumExpense = (members || []).reduce((sum, m) => sum + (m[yearKey]?.expense || 0), 0);
+    const sumProfit = (members || []).reduce((sum, m) => sum + (m[yearKey]?.profit || 0), 0);
+    
+    // Auto-calculate holdings: Capital - Expense (remaining in mandal pool)
+    const sumHolding = (members || []).reduce((sum, m) => {
+      const cap = m[yearKey]?.capital || 0;
+      const exp = m[yearKey]?.expense || 0;
+      return sum + (cap - exp);
+    }, 0);
+    const sumGopi = (members || []).reduce((sum, m) => sum + (m.gopiMandal || 0), 0);
+
+    // Compute IPO adjustments for this financial year
+    const yearTrades = (ipoTrades || []).filter(t => t.year === yearKey);
+    const activeInvested = yearTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0);
+    const realizedProfitLoss = yearTrades.filter(t => t.status === 'sold').reduce((s, t) => s + ((t.sellPrice || 0) - (t.buyPrice || 0)), 0);
+
+    if (incomeIdx !== -1) updatedRows[incomeIdx][col] = sumCapital;
+    if (expenseIdx !== -1) updatedRows[expenseIdx][col] = sumExpense;
+    
+    // Profit = Member Profits + realized IPO Profit/Loss
+    if (profitIdx !== -1) updatedRows[profitIdx][col] = sumProfit + realizedProfitLoss;
+    
+    // Holding = Member Holdings - active stock investment + realized profit/loss
+    if (holdingIdx !== -1) updatedRows[holdingIdx][col] = Math.max(0, sumHolding - activeInvested + realizedProfitLoss);
+    
+    if (gopiIdx !== -1) updatedRows[gopiIdx][col] = sumGopi;
+
+    // Remaining Amount (Cash Baki) = Income - Pending Expense - active stock investment + realized profit/loss
+    if (incomeIdx !== -1 && expenseIdx !== -1 && remainingIdx !== -1) {
+      updatedRows[remainingIdx][col] = Math.max(0, (updatedRows[incomeIdx][col] || 0) - (updatedRows[expenseIdx][col] || 0) - activeInvested + realizedProfitLoss);
+    }
+    
+    if (grandIdx !== -1) {
+      updatedRows[grandIdx][col] = 
+        (updatedRows[remainingIdx]?.[col] || 0) + 
+        (updatedRows[profitIdx]?.[col] || 0) - 
+        (updatedRows[holdingIdx]?.[col] || 0) + 
+        (updatedRows[gopiIdx]?.[col] || 0);
+    }
+  });
+
+  return updatedRows;
+};
+
 // POST /api/login  (frontend uses { id, password })
 router.post('/login', async (req, res) => {
   try {
@@ -68,9 +144,11 @@ router.get('/data', async (req, res) => {
         totalTrades: ipoTrades.length
       };
 
+      const synchronizedMasterRows = syncMasterRowsWithMembersBackend(members, snapshot.masterRows || [], ipoTrades);
+
       return res.json({
         members,
-        masterRows: snapshot.masterRows || [],
+        masterRows: synchronizedMasterRows,
         currentYear: snapshot.currentYear || 'year2026',
         appTitleGu: snapshot.appTitleGu || 'શુભ વ્યાપાર',
         appDescriptionGu: snapshot.appDescriptionGu || 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
@@ -177,10 +255,12 @@ router.get('/data', async (req, res) => {
       totalTrades: ipoTrades.length
     };
 
+    const synchronizedMasterRows = syncMasterRowsWithMembersBackend(members, masterRows || [], ipoTrades);
+
     // Build AppData
     const appData = {
       members,
-      masterRows,
+      masterRows: synchronizedMasterRows,
       currentYear: 'year2026',
       appTitleGu: 'શુભ વ્યાપાર',
       appDescriptionGu: 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
@@ -203,13 +283,16 @@ router.post('/data', async (req, res) => {
   try {
     const body = req.body || {};
 
+    const ipoTrades = await IpoTrade.find().lean();
+    const synchronizedMasterRows = syncMasterRowsWithMembersBackend(body.members || [], body.masterRows || [], ipoTrades);
+
     await AppState.findOneAndUpdate(
       { key: 'main' },
       {
           $set: {
           key: 'main',
           members: body.members || [],
-          masterRows: body.masterRows || [],
+          masterRows: synchronizedMasterRows,
           currentYear: body.currentYear || 'year2026',
           appTitleGu: body.appTitleGu || 'શુભ વ્યાપાર',
           appDescriptionGu: body.appDescriptionGu || 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
@@ -256,7 +339,7 @@ router.post('/data', async (req, res) => {
       const existing = await YearlyReport.findOne({ reportType: 'master_summary' });
       const years = ['2023', '2024'];
       const keyMap = { mr1: 'aavak', mr2: 'bakiKharcha', mr3: 'vadheliRakam', mr4: 'nafoo', mr5: 'holding', mr6: 'gopiMandal', mr7: 'ekandKul' };
-      const rows = body.masterRows.map((row) => ({
+      const rows = synchronizedMasterRows.map((row) => ({
         key: keyMap[row.id] || row.id,
         labelGujarati: row.titleGu || row.labelGujarati || '',
         values: new Map([
