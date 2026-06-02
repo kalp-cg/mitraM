@@ -508,6 +508,7 @@ export default function App() {
             searchTerm={searchTerm}
             recentLogs={appData.recentLogs || []}
             currentYear={appData.currentYear}
+            grandTotalAmount={appData.grandTotalAmount}
             onSelectMember={(id) => {
               setSelectedMemberId(id);
               setActiveTab("members");

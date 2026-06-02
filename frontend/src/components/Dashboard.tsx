@@ -7,18 +7,20 @@ interface DashboardProps {
   searchTerm: string;
   recentLogs?: SystemAudit[];
   currentYear?: string;
+  grandTotalAmount?: number;
   onSelectMember: (id: string) => void;
   onNavigate: (tab: 'members' | 'master_summary' | 'profit' | 'reports' | 'ipo') => void;
   ipoSummary?: IpoSummary;
   ipoTrades?: IpoTrade[];
 }
 
-export default function Dashboard({ members, searchTerm, recentLogs = [], currentYear, onSelectMember, onNavigate, ipoSummary, ipoTrades = [] }: DashboardProps) {
+export default function Dashboard({ members, searchTerm, recentLogs = [], currentYear, grandTotalAmount, onSelectMember, onNavigate, ipoSummary, ipoTrades = [] }: DashboardProps) {
   const [memberFilter, setMemberFilter] = useState<'all' | 'due' | 'high_capital'>('all');
 
   const yearKeys = FINANCIAL_YEARS.map(y => y.id);
   const cy = currentYear || 'year2026';
   const holdingKey = `holding${cy.replace("year", "")}`;
+  const displayedGrandTotal = typeof grandTotalAmount === 'number' ? grandTotalAmount : null;
 
   // Filter members on search term + quick filters
   let finalMembers = members.filter(
@@ -123,7 +125,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div>
               <p className="text-amber-900/60 font-medium text-sm">કુલ જમા રકમ (તમામ વર્ષ)</p>
               <h3 className="text-3xl font-extrabold text-amber-950 mt-2.5 font-sans tracking-tight">
-                ₹ {Math.max(0, totalCapitalAllYears - (ipoSummary?.activeInvested || 0) + (ipoSummary?.totalProfitLoss || 0)).toLocaleString("en-IN")}
+                ₹ {(displayedGrandTotal ?? Math.max(0, totalCapitalAllYears - totalExpenseAllYears - (ipoSummary?.activeInvested || 0) + (ipoSummary?.totalProfitLoss || 0))).toLocaleString("en-IN")}
               </h3>
               <p className="text-xs text-emerald-600 font-semibold mt-3 flex items-center gap-1">
                 <span>📈</span> ગયા વર્ષ કરતા {pctChange}% બદલાવ
@@ -164,8 +166,8 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
 
       {/* IPO P&L KPI Card */}
       {ipoSummary && (
-        <div 
-          onClick={() => onNavigate('ipo')} 
+        <div
+          onClick={() => onNavigate('ipo')}
           className="bg-white p-6 rounded-2xl border border-amber-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] cursor-pointer hover:shadow-md transition-all relative overflow-hidden"
         >
           <div className="absolute top-2 right-2 text-violet-100 font-bold font-mono text-5xl select-none opacity-30 mt-2">
@@ -174,9 +176,8 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
           <div className="flex justify-between items-start">
             <div>
               <p className="text-amber-900/60 font-medium text-sm">શેર / IPO P&L</p>
-              <h3 className={`text-3xl font-extrabold mt-2.5 font-sans tracking-tight ${
-                (ipoSummary.totalProfitLoss || 0) >= 0 ? 'text-emerald-700' : 'text-red-700'
-              }`}>
+              <h3 className={`text-3xl font-extrabold mt-2.5 font-sans tracking-tight ${(ipoSummary.totalProfitLoss || 0) >= 0 ? 'text-emerald-700' : 'text-red-700'
+                }`}>
                 {(ipoSummary.totalProfitLoss || 0) >= 0 ? '+' : ''}₹ {(ipoSummary.totalProfitLoss || 0).toLocaleString("en-IN")}
               </h3>
               <p className="text-xs text-violet-600 font-semibold mt-3 flex items-center gap-1">
@@ -197,36 +198,33 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
             <h3 className="text-lg font-bold text-amber-950">સભ્યોની સૂચિ પત્રક</h3>
           </div>
-          
+
           {/* STATEFUL CATEGORY FILTERS */}
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setMemberFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
-                memberFilter === 'all'
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${memberFilter === 'all'
                   ? 'bg-brand-orange text-white border-brand-orange'
                   : 'bg-white text-amber-900 border-amber-100 hover:bg-brand-cream'
-              }`}
+                }`}
             >
               બધા સભ્યો ({members.length})
             </button>
             <button
               onClick={() => setMemberFilter('due')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
-                memberFilter === 'due'
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${memberFilter === 'due'
                   ? 'bg-[#991B1B] text-white border-[#991B1B]'
                   : 'bg-white text-red-700 border-red-100 hover:bg-red-50/50'
-              }`}
+                }`}
             >
               બાકી હોલ્ડિંગ વાળા ({members.filter(m => (m[holdingKey] || 0) > 0).length})
             </button>
             <button
               onClick={() => setMemberFilter('high_capital')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
-                memberFilter === 'high_capital'
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${memberFilter === 'high_capital'
                   ? 'bg-emerald-700 text-white border-emerald-700'
                   : 'bg-white text-emerald-800 border-emerald-100 hover:bg-emerald-50/50'
-              }`}
+                }`}
             >
               મોટી મુડી રોકાણકાર ({members.filter(m => yearKeys.reduce((s, k) => s + (m[k]?.capital || 0), 0) >= 250000).length})
             </button>
@@ -316,7 +314,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
 
       {/* Dynamic Grid for Navigation & Audit Trail - High Reliability & Ease of Use */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Main Core Navigation Short-links Bento */}
         <div className="lg:col-span-7 bg-[#FFFDF5] rounded-2xl border border-amber-100/70 p-6 flex flex-col justify-between">
           <div>
@@ -377,7 +375,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <h4 className="font-bold text-amber-950 text-base mb-4 flex items-center gap-2">
               <span>📜</span> ચોપડા સુધારણા નોંધણી લૉગ્સ (Audit Trail)
             </h4>
-            
+
             <div className="space-y-3.5 max-h-[220px] overflow-y-auto pr-1">
               {recentLogs.length === 0 ? (
                 <div className="p-6 text-center text-xs text-amber-900/40">
@@ -398,7 +396,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
               )}
             </div>
           </div>
-          
+
           <div className="mt-3.5 pt-3 border-t border-amber-50 text-[10px] font-bold text-emerald-700 flex items-center gap-1">
             <span className="size-1.5 rounded-full bg-emerald-500 inline-block animate-ping" />
             <span>લાઇવ રિયલ-ટાઇમ રક્ષિત ચોપડા હિસાબ ઓડિટ સિંકિંગ કાર્યરત છે.</span>

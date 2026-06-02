@@ -134,6 +134,12 @@ router.get('/data', async (req, res) => {
           : `/api/image/member/${idx}`
       }));
 
+      const report = await YearlyReport.findOne({ reportType: 'master_summary' }).lean();
+      const storedGrandTotal = report?.masterSummary?.find((row) => row.key === 'ekandKul');
+      const grandTotalAmount = storedGrandTotal && storedGrandTotal.total != null
+        ? Number(storedGrandTotal.total || 0)
+        : 0;
+
       // Load IPO summary
       const ipoTrades = await IpoTrade.find().sort({ buyDate: -1 }).lean();
       const ipoSummary = {
@@ -160,6 +166,7 @@ router.get('/data', async (req, res) => {
         groupPhoto: '/api/image/group-photo',
         ipoTrades: ipoTrades.map(t => ({ ...t, id: String(t._id) })),
         ipoSummary,
+        grandTotalAmount,
         transactions: snapshot.transactions || []
       });
     }
@@ -209,6 +216,10 @@ router.get('/data', async (req, res) => {
 
     // Master rows from YearlyReport
     const report = await YearlyReport.findOne({ reportType: 'master_summary' }).lean();
+    const storedGrandTotal = report?.masterSummary?.find((row) => row.key === 'ekandKul');
+    const grandTotalAmount = storedGrandTotal && storedGrandTotal.total != null
+      ? Number(storedGrandTotal.total || 0)
+      : 0;
     const mapKeyToMr = {
       aavak: 'mr1',
       bakiKharcha: 'mr2',
@@ -270,6 +281,7 @@ router.get('/data', async (req, res) => {
       hanumanFull: '/api/image/hanuman-full',
       ipoTrades: ipoTrades.map(t => ({ ...t, id: String(t._id) })),
       ipoSummary,
+      grandTotalAmount,
       transactions: []
     };
 

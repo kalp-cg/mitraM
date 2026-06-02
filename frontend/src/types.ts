@@ -87,6 +87,7 @@ export interface AppData {
   appDescriptionGu: string;
   recentLogs?: SystemAudit[];
   targetAccounts?: string[];
+  grandTotalAmount?: number;
   hanumanFace?: string;
   hanumanFull?: string;
   hanumanTurban?: string;
