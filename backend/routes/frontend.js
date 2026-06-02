@@ -50,15 +50,25 @@ router.get('/data', async (req, res) => {
   try {
     const snapshot = await AppState.findOne({ key: 'main' }).lean();
     if (snapshot) {
+      const members = (snapshot.members || []).map((m, idx) => ({
+        ...m,
+        imageUrl: m.imageUrl && (m.imageUrl.startsWith('http') || m.imageUrl.startsWith('/api/'))
+          ? m.imageUrl
+          : `/api/image/member/${idx}`
+      }));
+
       return res.json({
-        members: snapshot.members || [],
+        members,
         masterRows: snapshot.masterRows || [],
-        currentYear: snapshot.currentYear || 'year2024',
+        currentYear: snapshot.currentYear || 'year2026',
         appTitleGu: snapshot.appTitleGu || 'શુભ વ્યાપાર',
         appDescriptionGu: snapshot.appDescriptionGu || 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
         recentLogs: snapshot.recentLogs || [],
         targetAccounts: snapshot.targetAccounts || ['પિતૃ પક્ષ ખાતું (પિતાજી)', 'માતાજીનું ખાતું', 'પત્નીનું ખાતું', 'મોટા દાદીનું ખાતું'],
         hanumanFull: '/api/image/hanuman-full',
+        hanumanFace: '/api/image/hanuman-face',
+        hanumanTurban: '/api/image/hanuman-turban',
+        groupPhoto: '/api/image/group-photo'
       });
     }
 
@@ -70,13 +80,15 @@ router.get('/data', async (req, res) => {
       { id: 'year2024', label: '2024', masterKey: 'year24' }
     ];
 
-    const members = membersRaw.map((m) => {
+    const members = membersRaw.map((m, idx) => {
       const out = {
         id: String(m._id),
         nameEn: m.nameEn || m.name || '',
         nameGu: m.nameGu || m.nameGujarati || '',
         status: m.status || 'ACTIVE',
-        imageUrl: m.imageUrl || m.photo || '',
+        imageUrl: m.imageUrl && (m.imageUrl.startsWith('http') || m.imageUrl.startsWith('/api/'))
+          ? m.imageUrl
+          : `/api/image/member/${idx}`,
         holding2024: 0,
         gopiMandal: m.gopiMandal || 0,
         notes: m.notes || ''
@@ -260,13 +272,45 @@ router.post('/data', async (req, res) => {
   }
 });
 
-// GET /api/image/:id - return inline SVG for hanuman-full or 404
+// GET /api/image/member/:idx - Serve high-aesthetic member avatars
+router.get('/image/member/:idx', (req, res) => {
+  const idx = parseInt(req.params.idx);
+  const fallbacks = [
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80"
+  ];
+  const fallbackUrl = fallbacks[idx] || fallbacks[0];
+  res.redirect(fallbackUrl);
+});
+
+// GET /api/image/hanuman-face
+router.get('/image/hanuman-face', (req, res) => {
+  res.redirect("https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=300&auto=format&fit=crop&q=80");
+});
+
+// GET /api/image/hanuman-full
+router.get('/image/hanuman-full', (req, res) => {
+  res.redirect("https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600&auto=format&fit=crop&q=80");
+});
+
+// GET /api/image/hanuman-turban
+router.get('/image/hanuman-turban', (req, res) => {
+  res.redirect("https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600&auto=format&fit=crop&q=80");
+});
+
+// GET /api/image/group-photo
+router.get('/image/group-photo', (req, res) => {
+  res.redirect("https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=1000&auto=format&fit=crop&q=80");
+});
+
+// GET /api/image/:id - legacy compatibility fallback
 router.get('/image/:id', (req, res) => {
   const { id } = req.params;
   if (id === 'hanuman-full') {
-    res.setHeader('Content-Type', 'image/svg+xml');
-    // Simple inline SVG fallback used by frontend splash
-    return res.send(`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="100%" height="100%" fill="#F97316"/><text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="middle">હનુમાન દાદા</text></svg>`);
+    return res.redirect("https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600&auto=format&fit=crop&q=80");
   }
   res.status(404).send('Not found');
 });
