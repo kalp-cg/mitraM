@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Member = require('../models/Member');
 const YearlyReport = require('../models/YearlyReport');
 const AppState = require('../models/AppState');
+const IpoTrade = require('../models/IpoTrade');
 
 const router = express.Router();
 
@@ -57,6 +58,16 @@ router.get('/data', async (req, res) => {
           : `/api/image/member/${idx}`
       }));
 
+      // Load IPO summary
+      const ipoTrades = await IpoTrade.find().sort({ buyDate: -1 }).lean();
+      const ipoSummary = {
+        totalInvested: ipoTrades.reduce((s, t) => s + (t.buyPrice || 0), 0),
+        totalProfitLoss: ipoTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (t.profitLoss || 0), 0),
+        activeCount: ipoTrades.filter(t => t.status === 'holding').length,
+        activeInvested: ipoTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0),
+        totalTrades: ipoTrades.length
+      };
+
       return res.json({
         members,
         masterRows: snapshot.masterRows || [],
@@ -68,7 +79,9 @@ router.get('/data', async (req, res) => {
         hanumanFull: '/api/image/hanuman-full',
         hanumanFace: '/api/image/hanuman-face',
         hanumanTurban: '/api/image/hanuman-turban',
-        groupPhoto: '/api/image/group-photo'
+        groupPhoto: '/api/image/group-photo',
+        ipoTrades: ipoTrades.map(t => ({ ...t, id: String(t._id) })),
+        ipoSummary
       });
     }
 
@@ -154,6 +167,16 @@ router.get('/data', async (req, res) => {
       });
     }
 
+    // Load IPO summary for non-snapshot path too
+    const ipoTrades = await IpoTrade.find().sort({ buyDate: -1 }).lean();
+    const ipoSummary = {
+      totalInvested: ipoTrades.reduce((s, t) => s + (t.buyPrice || 0), 0),
+      totalProfitLoss: ipoTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (t.profitLoss || 0), 0),
+      activeCount: ipoTrades.filter(t => t.status === 'holding').length,
+      activeInvested: ipoTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0),
+      totalTrades: ipoTrades.length
+    };
+
     // Build AppData
     const appData = {
       members,
@@ -163,14 +186,10 @@ router.get('/data', async (req, res) => {
       appDescriptionGu: 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
       recentLogs: [],
       targetAccounts: ['પિતૃ પક્ષ ખાતું (પિતાજી)', 'માતાજીનું ખાતું', 'પત્નીનું ખાતું', 'મોટા દાદીનું ખાતું'],
-      hanumanFull: '/api/image/hanuman-full'
+      hanumanFull: '/api/image/hanuman-full',
+      ipoTrades: ipoTrades.map(t => ({ ...t, id: String(t._id) })),
+      ipoSummary
     };
-
-    await AppState.findOneAndUpdate(
-      { key: 'main' },
-      { $set: { ...appData, key: 'main' } },
-      { upsert: true, new: true }
-    );
 
     res.json(appData);
   } catch (err) {

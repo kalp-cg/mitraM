@@ -14,7 +14,7 @@ import {
   Notebook
 } from "lucide-react";
 
-import { ActiveTab, Member, MasterRow, AppData, FINANCIAL_YEARS } from "./types";
+import { ActiveTab, Member, MasterRow, AppData, IpoTrade, FINANCIAL_YEARS } from "./types";
 import Splash from "./components/Splash";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Login from "./components/Login";
@@ -25,6 +25,7 @@ import MasterSummary from "./components/MasterSummary";
 import MemberDistribution from "./components/MemberDistribution";
 import Reports from "./components/Reports";
 import Settings from "./components/Settings";
+import IpoTracker from "./components/IpoTracker";
 
 const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterRow[]): MasterRow[] => {
   const updatedRows = currentMasterRows.map((row) => ({ ...row }));
@@ -45,7 +46,12 @@ const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterR
     const sumCapital = members.reduce((sum, m) => sum + (m[yearKey]?.capital || 0), 0);
     const sumExpense = members.reduce((sum, m) => sum + (m[yearKey]?.expense || 0), 0);
     const sumProfit = members.reduce((sum, m) => sum + (m[yearKey]?.profit || 0), 0);
-    const sumHolding = members.reduce((sum, m) => sum + (m[holdingKey] || 0), 0);
+    // Auto-calculate holdings: Capital - Expense (remaining in mandal pool)
+    const sumHolding = members.reduce((sum, m) => {
+      const cap = m[yearKey]?.capital || 0;
+      const exp = m[yearKey]?.expense || 0;
+      return sum + (cap - exp);
+    }, 0);
     const sumGopi = members.reduce((sum, m) => sum + (m.gopiMandal || 0), 0);
 
     if (incomeIdx !== -1) updatedRows[incomeIdx][col] = sumCapital;
@@ -242,6 +248,44 @@ export default function App() {
     saveAppData(nextData);
   };
 
+  // IPO Trade Handlers - call backend API directly and refresh data
+  const handleAddIpoTrade = async (trade: Omit<IpoTrade, 'id' | 'profitLoss'>) => {
+    try {
+      await fetch("/api/ipo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(trade),
+      });
+      fetchLatestData(); // Refresh to get updated IPO data
+    } catch (err) {
+      console.error("Error adding IPO trade:", err);
+    }
+  };
+
+  const handleUpdateIpoTrade = async (id: string, updates: Partial<IpoTrade>) => {
+    try {
+      await fetch(`/api/ipo/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      fetchLatestData();
+    } catch (err) {
+      console.error("Error updating IPO trade:", err);
+    }
+  };
+
+  const handleDeleteIpoTrade = async (id: string) => {
+    try {
+      await fetch(`/api/ipo/${id}`, {
+        method: "DELETE",
+      });
+      fetchLatestData();
+    } catch (err) {
+      console.error("Error deleting IPO trade:", err);
+    }
+  };
+
   // Handles adding quick ledger balance entry
   const handleAddNewEntry = (e: React.FormEvent) => {
     e.preventDefault();
@@ -428,6 +472,7 @@ export default function App() {
             onNavigate={(tab) => {
               setActiveTab(tab);
             }}
+            ipoSummary={appData.ipoSummary}
           />
         );
       case "members":
@@ -471,6 +516,17 @@ export default function App() {
             masterRows={appData.masterRows}
             onResetToDefault={handleResetToDefault}
             onUploadBackup={handleUploadBackup}
+            currentYear={appData.currentYear}
+          />
+        );
+      case "ipo":
+        return (
+          <IpoTracker
+            ipoTrades={appData.ipoTrades || []}
+            ipoSummary={appData.ipoSummary || { totalInvested: 0, totalProfitLoss: 0, activeCount: 0, activeInvested: 0, totalTrades: 0 }}
+            onAddTrade={handleAddIpoTrade}
+            onUpdateTrade={handleUpdateIpoTrade}
+            onDeleteTrade={handleDeleteIpoTrade}
             currentYear={appData.currentYear}
           />
         );
@@ -561,6 +617,19 @@ export default function App() {
             >
               <span className="mr-3 text-lg">📄</span>
               <span>રિપોર્ટ્સ</span>
+            </button>
+
+            {/* IPO Trading Button */}
+            <button
+              onClick={() => { setActiveTab("ipo"); setSelectedMemberId(null); }}
+              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                activeTab === "ipo"
+                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                  : "text-brand-soil hover:bg-brand-lightcream"
+              }`}
+            >
+              <span className="mr-3 text-lg">📈</span>
+              <span>IPO ટ્રેડિંગ</span>
             </button>
 
             {/* Settings Button */}

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Member, FINANCIAL_YEARS, SystemAudit } from "../types";
-import { Users2, Landmark, Clock, FileSpreadsheet, Eye } from "lucide-react";
+import { Member, FINANCIAL_YEARS, SystemAudit, IpoSummary } from "../types";
+import { Users2, Landmark, Clock, FileSpreadsheet, Eye, BarChart3, TrendingUp } from "lucide-react";
 
 interface DashboardProps {
   members: Member[];
@@ -8,10 +8,11 @@ interface DashboardProps {
   recentLogs?: SystemAudit[];
   currentYear?: string;
   onSelectMember: (id: string) => void;
-  onNavigate: (tab: 'members' | 'master_summary' | 'profit' | 'reports') => void;
+  onNavigate: (tab: 'members' | 'master_summary' | 'profit' | 'reports' | 'ipo') => void;
+  ipoSummary?: IpoSummary;
 }
 
-export default function Dashboard({ members, searchTerm, recentLogs = [], currentYear, onSelectMember, onNavigate }: DashboardProps) {
+export default function Dashboard({ members, searchTerm, recentLogs = [], currentYear, onSelectMember, onNavigate, ipoSummary }: DashboardProps) {
   const [memberFilter, setMemberFilter] = useState<'all' | 'due' | 'high_capital'>('all');
 
   const yearKeys = FINANCIAL_YEARS.map(y => y.id);
@@ -43,12 +44,21 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
     0
   );
 
+  // Auto-calculate holdings: Capital - Expense for each member (remaining in pool)
   const totalOutstanding = members.reduce(
-    (sum, m) => sum + (m[holdingKey] || 0),
+    (sum, m) => {
+      const capVal = m[cy]?.capital || 0;
+      const expVal = m[cy]?.expense || 0;
+      return sum + (capVal - expVal);
+    },
     0
   );
 
-  const countWithRemaining = members.filter((m) => (m[holdingKey] || 0) > 0).length;
+  const countWithRemaining = members.filter((m) => {
+    const capVal = m[cy]?.capital || 0;
+    const expVal = m[cy]?.expense || 0;
+    return (capVal - expVal) > 0;
+  }).length;
 
   // Compute percent change vs previous year (if present)
   const cyIndex = FINANCIAL_YEARS.findIndex(y => y.id === cy);
@@ -135,6 +145,34 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
           </div>
         </div>
       </div>
+
+      {/* IPO P&L KPI Card */}
+      {ipoSummary && (
+        <div 
+          onClick={() => onNavigate('ipo')} 
+          className="bg-white p-6 rounded-2xl border border-amber-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] cursor-pointer hover:shadow-md transition-all relative overflow-hidden"
+        >
+          <div className="absolute top-2 right-2 text-violet-100 font-bold font-mono text-5xl select-none opacity-30 mt-2">
+            IPO
+          </div>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-amber-900/60 font-medium text-sm">શેર / IPO P&L</p>
+              <h3 className={`text-3xl font-extrabold mt-2.5 font-sans tracking-tight ${
+                (ipoSummary.totalProfitLoss || 0) >= 0 ? 'text-emerald-700' : 'text-red-700'
+              }`}>
+                {(ipoSummary.totalProfitLoss || 0) >= 0 ? '+' : ''}₹ {(ipoSummary.totalProfitLoss || 0).toLocaleString("en-IN")}
+              </h3>
+              <p className="text-xs text-violet-600 font-semibold mt-3 flex items-center gap-1">
+                <span>📊</span> {ipoSummary.activeCount || 0} સક્રિય હોલ્ડિંગ • {ipoSummary.totalTrades || 0} કુલ ટ્રેડ્સ
+              </p>
+            </div>
+            <div className="bg-violet-50 p-3 rounded-xl text-violet-600">
+              <BarChart3 className="size-6 stroke-[2px]" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Members Section Grid Layout - Matches image cards structure */}
       <div className="space-y-4">
@@ -231,9 +269,14 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
                       </div>
                       <div className="flex justify-between items-center bg-red-50/10 p-2 rounded-lg">
                         <span className="text-amber-800 font-medium">અંતિમ બાકી (હોલ્ડિંગ):</span>
-                        <span className={`font-bold ${member.holding2024 > 0 ? "text-red-700" : "text-emerald-700"}`}>
-                          ₹ {(member.holding2024 || 0).toLocaleString("en-IN")}
-                        </span>
+                        {(() => {
+                          const autoHolding = (member[cy]?.capital || 0) - (member[cy]?.expense || 0);
+                          return (
+                            <span className={`font-bold ${autoHolding > 0 ? "text-amber-700" : "text-emerald-700"}`}>
+                              ₹ {autoHolding.toLocaleString("en-IN")}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -296,6 +339,17 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
                 </div>
                 <h5 className="font-bold text-amber-950 text-sm group-hover:text-emerald-800">પ્રિન્ટ કરો અને રીપોર્ટ</h5>
                 <p className="text-xs text-amber-700 mt-1">વાર્ષિક એકંદર અહેવાલ ડાઉનલોડ.</p>
+              </button>
+
+              <button
+                onClick={() => onNavigate("ipo")}
+                className="p-4 bg-white hover:bg-violet-50/30 rounded-xl border border-amber-100 text-left transition-all cursor-pointer shadow-sm group"
+              >
+                <div className="size-10 bg-violet-50 text-violet-700 rounded-lg flex items-center justify-center mb-3">
+                  <BarChart3 className="size-5" />
+                </div>
+                <h5 className="font-bold text-amber-950 text-sm group-hover:text-violet-800">શેર / IPO ટ્રેડિંગ</h5>
+                <p className="text-xs text-amber-700 mt-1">IPO રોકાણ, ખરીદી-વેચાણ P&L ગણતરી.</p>
               </button>
             </div>
           </div>

@@ -13,6 +13,7 @@ const memberRoutes = require('./routes/members');
 const transactionRoutes = require('./routes/transactions');
 const reportRoutes = require('./routes/reports');
 const frontendRoutes = require('./routes/frontend');
+const ipoRoutes = require('./routes/ipo');
 
 const app = express();
 const server = http.createServer(app);
@@ -64,6 +65,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/ipo', ipoRoutes);
 
 // Frontend-friendly API (shims endpoints used by new web UI)
 app.use('/api', frontendRoutes);

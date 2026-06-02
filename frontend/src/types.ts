@@ -55,6 +55,29 @@ export interface MasterRow {
   calcType?: 'subtract' | 'add_all' | 'custom';
 }
 
+export interface IpoTrade {
+  id: string;
+  shareName: string;
+  buyDate: string;
+  sellDate?: string;
+  buyPrice: number;
+  sellPrice: number;
+  quantity: number;
+  dematAccount: string;
+  status: 'holding' | 'sold';
+  profitLoss: number;
+  notes?: string;
+  year: string;
+}
+
+export interface IpoSummary {
+  totalInvested: number;
+  totalProfitLoss: number;
+  activeCount: number;
+  activeInvested: number;
+  totalTrades: number;
+}
+
 export interface AppData {
   members: Member[];
   masterRows: MasterRow[];
@@ -67,6 +90,8 @@ export interface AppData {
   hanumanFull?: string;
   hanumanTurban?: string;
   groupPhoto?: string;
+  ipoTrades?: IpoTrade[];
+  ipoSummary?: IpoSummary;
 }
 
 export interface SystemAudit {
@@ -77,4 +102,4 @@ export interface SystemAudit {
 }
 
 // Routes navigation enum
-export type ActiveTab = 'dashboard' | 'members' | 'master_summary' | 'profit' | 'reports' | 'settings';
+export type ActiveTab = 'dashboard' | 'members' | 'master_summary' | 'profit' | 'reports' | 'settings' | 'ipo';

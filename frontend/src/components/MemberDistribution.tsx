@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Member, FINANCIAL_YEARS } from "../types";
-import { Check, Edit2, Printer } from "lucide-react";
+import { Check, Edit2, Printer, Sparkles } from "lucide-react";
 
 interface MemberDistributionProps {
   members: Member[];
@@ -58,11 +58,18 @@ export default function MemberDistribution({ members, onSaveMembers, currentYear
 
   const currentMembers = isEditing ? editedMembers : members;
 
+  // Auto-calculate holdings: Capital - Expense for each member (remaining in mandal pool)
+  const getAutoHolding = (m: Member) => {
+    const capVal = m[yearKey]?.capital || 0;
+    const expVal = m[yearKey]?.expense || 0;
+    return capVal - expVal; // Remaining amount held in the mandal
+  };
+
   // Year-wise sums
   const totalCap = currentMembers.reduce((sum, m) => sum + (m[yearKey]?.capital || 0), 0);
   const totalExp = currentMembers.reduce((sum, m) => sum + (m[yearKey]?.expense || 0), 0);
   const totalProf = currentMembers.reduce((sum, m) => sum + (m[yearKey]?.profit || 0), 0);
-  const totalHoldings = currentMembers.reduce((sum, m) => sum + (m[holdingKey] || 0), 0);
+  const totalHoldings = currentMembers.reduce((sum, m) => sum + getAutoHolding(m), 0);
   const totalGopiMandal = currentMembers.reduce((sum, m) => sum + (m.gopiMandal || 0), 0);
 
   // Grand total sum: Cap - Exp + Prof - Holding + Gopi
@@ -70,7 +77,7 @@ export default function MemberDistribution({ members, onSaveMembers, currentYear
     const capVal = m[yearKey]?.capital || 0;
     const expVal = m[yearKey]?.expense || 0;
     const profVal = m[yearKey]?.profit || 0;
-    const holdVal = m[holdingKey] || 0;
+    const holdVal = getAutoHolding(m);
     const gopiVal = m.gopiMandal || 0;
     const share = capVal - expVal + profVal - holdVal + gopiVal;
     return sum + share;
@@ -184,7 +191,12 @@ export default function MemberDistribution({ members, onSaveMembers, currentYear
                 <th className="py-4 px-5 text-right border-r border-amber-100">મુડી (Capital)</th>
                 <th className="py-4 px-5 text-right border-r border-amber-100">ખર્ચ (Expense)</th>
                 <th className="py-4 px-5 text-right border-r border-amber-100">નફો (Profit)</th>
-                <th className="py-4 px-5 text-right border-r border-amber-100">હોલ્ડિંગ (Holding)</th>
+                <th className="py-4 px-5 text-right border-r border-amber-100">
+                  <span className="flex items-center justify-end gap-1">
+                    <Sparkles className="size-3 text-amber-500" />
+                    હોલ્ડિંગ (Auto)
+                  </span>
+                </th>
                 <th className="py-4 px-5 text-right border-r border-amber-200/50">ગોપી મંડળ</th>
                 <th className="py-4 px-6 text-right font-extrabold bg-[#FFF9E6]">કુલ ભાગ (Total Share)</th>
               </tr>
@@ -194,7 +206,7 @@ export default function MemberDistribution({ members, onSaveMembers, currentYear
                 const valCap = m[yearKey]?.capital || 0;
                 const valExp = m[yearKey]?.expense || 0;
                 const valProf = m[yearKey]?.profit || 0;
-                const valHold = m[holdingKey] || 0;
+                const valHold = getAutoHolding(m);
                 const valGopi = m.gopiMandal || 0;
                 
                 // Calculate member grand share: Capital - Expense + Profit - Holding + Gopi
@@ -252,18 +264,12 @@ export default function MemberDistribution({ members, onSaveMembers, currentYear
                       )}
                     </td>
 
-                    {/* Holdings Cell */}
-                    <td className="py-3 px-5 text-right font-mono border-r border-amber-100/50 text-red-700">
-                      {isEditing ? (
-                        <input
-                          type="number"
-                          value={valHold}
-                          onChange={(e) => handleCellChange(idx, 'root', holdingKey, e.target.value)}
-                          className="w-24 text-right bg-amber-50/80 border border-amber-200 p-1 rounded text-xs font-bold"
-                        />
-                      ) : (
-                        `₹${valHold.toLocaleString("en-IN")}`
-                      )}
+                    {/* Holdings Cell - AUTO CALCULATED (Read Only) */}
+                    <td className="py-3 px-5 text-right font-mono border-r border-amber-100/50 text-amber-700 bg-amber-50/20">
+                      <span className="flex items-center justify-end gap-1">
+                        <Sparkles className="size-3 text-amber-400 shrink-0" />
+                        ₹{valHold.toLocaleString("en-IN")}
+                      </span>
                     </td>
 
                     {/* Gopi Mandal Cell */}
