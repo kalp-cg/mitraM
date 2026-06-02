@@ -84,33 +84,12 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
     const sellPriceNum = parseFloat(sellPrice) || 0;
     const sellQtyNum = parseInt(sellQuantity) || t.quantity;
 
-    if (sellQtyNum < t.quantity) {
-      // Partial Sale split!
-      onUpdateTrade(t.id, {
-        quantity: sellQtyNum,
-        sellPrice: sellPriceNum,
-        sellDate: sellDate,
-        status: 'sold',
-      });
-      onAddTrade({
-        shareName: t.shareName,
-        buyDate: t.buyDate,
-        buyPrice: t.buyPrice,
-        sellPrice: 0,
-        quantity: t.quantity - sellQtyNum,
-        dematAccount: t.dematAccount,
-        status: 'holding',
-        notes: t.notes ? `${t.notes} (બાકી વધેલ શેર)` : 'બાકી વધેલ શેર',
-        year: t.year,
-      });
-    } else {
-      // Sell all
-      onUpdateTrade(t.id, {
-        sellPrice: sellPriceNum,
-        sellDate: sellDate,
-        status: 'sold',
-      });
-    }
+    onUpdateTrade(t.id, {
+      sellPrice: sellPriceNum,
+      sellQuantity: sellQtyNum,
+      sellDate: sellDate,
+      status: 'sold',
+    });
 
     setSellTradeId(null);
     setSellPrice("");

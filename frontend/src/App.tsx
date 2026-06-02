@@ -56,8 +56,8 @@ const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterR
 
     // Compute IPO adjustments for this financial year
     const yearTrades = ipoTrades.filter(t => t.year === yearKey);
-    const activeInvested = yearTrades.filter(t => t.status === 'holding').reduce((s, t) => s + (t.buyPrice || 0), 0);
-    const realizedProfitLoss = yearTrades.filter(t => t.status === 'sold').reduce((s, t) => s + ((t.sellPrice || 0) - (t.buyPrice || 0)), 0);
+    const activeInvested = yearTrades.filter(t => t.status === 'holding').reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
+    const realizedProfitLoss = yearTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (((t.sellPrice || 0) - (t.buyPrice || 0)) * (t.quantity || 1)), 0);
 
     if (incomeIdx !== -1) updatedRows[incomeIdx][col] = sumCapital;
     if (expenseIdx !== -1) updatedRows[expenseIdx][col] = sumExpense;
@@ -517,6 +517,7 @@ export default function App() {
             members={appData.members}
             onSaveMembers={handleSaveMembers}
             currentYear={appData.currentYear}
+            ipoTrades={appData.ipoTrades || []}
           />
         );
       case "reports":

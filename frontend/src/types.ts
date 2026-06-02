@@ -63,6 +63,7 @@ export interface IpoTrade {
   buyPrice: number;
   sellPrice: number;
   quantity: number;
+  sellQuantity?: number;
   dematAccount: string;
   status: 'holding' | 'sold';
   profitLoss: number;

@@ -73,15 +73,60 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'IPO ટ્રેડ મળ્યો નથી' });
     }
 
-    Object.assign(trade, req.body);
-    await trade.save(); // triggers pre-save P&L calculation
+    const { sellQuantity, status, sellPrice, sellDate, ...otherUpdates } = req.body;
 
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('data-updated', { type: 'ipo', id: trade._id });
+    // Check for partial sell split
+    if (status === 'sold' && typeof sellQuantity === 'number' && sellQuantity > 0 && sellQuantity < trade.quantity) {
+      const originalQuantity = trade.quantity;
+      const soldQuantity = sellQuantity;
+      const remainingQuantity = originalQuantity - soldQuantity;
+
+      // 1. Update the original trade to represent the SOLD portion
+      trade.quantity = soldQuantity;
+      trade.sellPrice = sellPrice;
+      trade.sellDate = sellDate;
+      trade.status = 'sold';
+      
+      // Copy other updates if any
+      Object.assign(trade, otherUpdates);
+      await trade.save(); // triggers pre-save P&L calculation
+
+      // 2. Create a new trade for the REMAINING holding portion
+      const remainingTrade = new IpoTrade({
+        shareName: trade.shareName,
+        buyDate: trade.buyDate,
+        buyPrice: trade.buyPrice,
+        sellPrice: 0,
+        quantity: remainingQuantity,
+        dematAccount: trade.dematAccount,
+        status: 'holding',
+        notes: trade.notes ? `${trade.notes} (બાકી વધેલ શેર)` : 'બાકી વધેલ શેર',
+        year: trade.year
+      });
+      await remainingTrade.save();
+
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('data-updated', { type: 'ipo', id: trade._id });
+      }
+
+      return res.json({ 
+        message: 'IPO ટ્રેડ ભાગીદારીમાં વેચાયો અને બાકીના શેર હોલ્ડિંગમાં રખાયા', 
+        trade, 
+        remainingTrade 
+      });
+    } else {
+      // Normal update
+      Object.assign(trade, req.body);
+      await trade.save();
+
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('data-updated', { type: 'ipo', id: trade._id });
+      }
+
+      res.json({ message: 'IPO ટ્રેડ અપડેટ થયો', trade });
     }
-
-    res.json({ message: 'IPO ટ્રેડ અપડેટ થયો', trade });
   } catch (error) {
     console.error('Update IPO trade error:', error);
     res.status(500).json({ message: 'IPO ટ્રેડ અપડેટ કરવામાં ભૂલ' });
