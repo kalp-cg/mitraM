@@ -54,6 +54,17 @@ export default function Members({ members, onSaveMembers, selectedMemberId, onCl
   };
 
   const currentActive = editingId ? activeMemberData : null;
+  const allTimeAmount = currentActive
+    ? FINANCIAL_YEARS.reduce((sum, year) => {
+        const yearData = currentActive[year.id] || {};
+        const holdingKey = `holding${year.id.replace('year', '')}`;
+        return sum
+          + Number(yearData.capital || 0)
+          - Number(yearData.expense || 0)
+          + Number(yearData.profit || 0)
+          - Number(currentActive[holdingKey] || 0);
+      }, Number(currentActive.gopiMandal || 0))
+    : 0;
 
   return (
     <div className="space-y-6 select-none font-sans">
@@ -186,6 +197,16 @@ export default function Members({ members, onSaveMembers, selectedMemberId, onCl
               </div>
 
               <div>
+                <label className="block text-xs font-bold text-amber-900/70 mb-1.5">કુલ સમયની રકમ (All Time Amount)</label>
+                <input
+                  type="text"
+                  value={`₹${allTimeAmount.toLocaleString("en-IN")}`}
+                  readOnly
+                  className="w-full px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-950 text-sm font-bold font-mono"
+                />
+              </div>
+
+              <div>
                 <label className="block text-xs font-bold text-amber-900/70 mb-1.5">ગોપી મંડળ વિગત (Gopi Mandal Dues)</label>
                 <input
                   type="number"
@@ -196,13 +217,13 @@ export default function Members({ members, onSaveMembers, selectedMemberId, onCl
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-amber-900/70 mb-1.5">કરોડ/શેષ અને નોંધ (Auditor's Remarks)</label>
+                <label className="block text-xs font-bold text-amber-900/70 mb-1.5">ઓડિટર નોંધ (Auditor's Remarks)</label>
                 <input
                   type="text"
                   value={currentActive.notes || ""}
                   onChange={(e) => handleFieldChange('root', 'notes', e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl text-amber-950 text-sm font-medium focus:border-orange-500"
-                  placeholder="નોંધ ઉમેરો..."
+                  placeholder="All time amount and note..."
                 />
               </div>
             </div>

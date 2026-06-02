@@ -432,4 +432,16 @@ router.get('/image/:id', (req, res) => {
   res.status(404).send('Not found');
 });
 
+// GET /api/image/mobile/:name - serve files from backend/public/mobile
+router.get('/image/mobile/:name', (req, res) => {
+  const path = require('path');
+  const name = req.params.name;
+  const filePath = path.join(__dirname, '..', 'public', 'mobile', name);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      res.status(404).send('Not found');
+    }
+  });
+});
+
 module.exports = router;
