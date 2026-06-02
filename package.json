@@ -1,0 +1,9 @@
+{
+  "name": "mitram-monorepo-helper",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "cd backend && npm ci",
+    "start": "cd backend && npm start"
+  }
+}
