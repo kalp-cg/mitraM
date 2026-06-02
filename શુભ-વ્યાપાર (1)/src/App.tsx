@@ -83,7 +83,7 @@ export default function App() {
   // New Account Entry Modal states
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalMemberId, setModalMemberId] = useState("");
-  const [modalYear, setModalYear] = useState<string>("year2024");
+  const [modalYear, setModalYear] = useState<string>("year2026");
   const [modalType, setModalType] = useState<"capital" | "expense" | "profit">("capital");
   const [modalAmount, setModalAmount] = useState("");
   const [modalNotes, setModalNotes] = useState("");
@@ -600,7 +600,11 @@ export default function App() {
       {/* Main Framework Layout Container */}
       <div className="flex-1 flex flex-col min-w-0">
         <Header 
-          currentYear={appData?.currentYear || "2024/25"} 
+          currentYear={(() => {
+            const cy = appData?.currentYear;
+            const conf = FINANCIAL_YEARS.find(y => y.id === cy);
+            return conf ? conf.labelEn : (cy || "2026");
+          })()} 
           searchTerm={searchTerm} 
           onSearchChange={setSearchTerm} 
           onLogout={handleLogout}

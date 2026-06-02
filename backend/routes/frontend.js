@@ -146,7 +146,7 @@ router.get('/data', async (req, res) => {
     const appData = {
       members,
       masterRows,
-      currentYear: 'year2024',
+      currentYear: 'year2026',
       appTitleGu: 'શુભ વ્યાપાર',
       appDescriptionGu: 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
       recentLogs: [],
@@ -175,11 +175,11 @@ router.post('/data', async (req, res) => {
     await AppState.findOneAndUpdate(
       { key: 'main' },
       {
-        $set: {
+          $set: {
           key: 'main',
           members: body.members || [],
           masterRows: body.masterRows || [],
-          currentYear: body.currentYear || 'year2024',
+          currentYear: body.currentYear || 'year2026',
           appTitleGu: body.appTitleGu || 'શુભ વ્યાપાર',
           appDescriptionGu: body.appDescriptionGu || 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
           recentLogs: body.recentLogs || [],

@@ -20,7 +20,7 @@ export default function Members({ members, onSaveMembers, selectedMemberId, onCl
   );
 
   // Year to actively view/edit on the selected member
-  const [selectedEditYear, setSelectedEditYear] = useState(currentYear || "year2024");
+  const [selectedEditYear, setSelectedEditYear] = useState(currentYear || "year2026");
 
   const handleSelectMember = (member: Member) => {
     setEditingId(member.id);

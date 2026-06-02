@@ -13,7 +13,7 @@ export default function MasterSummary({ masterRows, onSaveMasterRows }: MasterSu
   const [editedRows, setEditedRows] = useState<MasterRow[]>([]);
   
   // State for single active year selection
-  const [selectedYear, setSelectedYear] = useState("year2024");
+  const [selectedYear, setSelectedYear] = useState("year2026");
 
   const yearConfig = FINANCIAL_YEARS.find(y => y.id === selectedYear) || FINANCIAL_YEARS[1];
   const yearKey = yearConfig.masterKey; // e.g. "year24"

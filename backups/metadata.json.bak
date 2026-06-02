@@ -1,0 +1,6 @@
+{
+  "name": "શુભ વ્યાપાર",
+  "description": "ગુજરાતી હિસાબ વ્યવસ્થાપન સિસ્ટમ - ચોપડા પૂજન અને સભ્યોની ભાગીદારી ખાતાવહી",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
