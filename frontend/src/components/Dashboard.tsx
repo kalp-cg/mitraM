@@ -149,7 +149,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div>
               <p className="text-amber-900/60 font-medium text-sm">બાકી રકમ (હોલ્ડિંગ)</p>
               <h3 className="text-3xl font-extrabold text-[#991B1B] mt-2.5 font-sans tracking-tight">
-                ₹ {Math.max(0, totalOutstanding - cyActiveInvested + cyRealizedProfitLoss).toLocaleString("en-IN")}
+                ₹ {totalOutstanding.toLocaleString("en-IN")}
               </h3>
               <p className="text-xs text-rose-600 font-semibold mt-3 flex items-center gap-1">
                 <span>⚠️</span> {countWithRemaining} સભ્યોની બાકી હોલ્ડિંગ ચૂકવણી
