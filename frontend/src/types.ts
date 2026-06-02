@@ -93,17 +93,6 @@ export interface AppData {
   groupPhoto?: string;
   ipoTrades?: IpoTrade[];
   ipoSummary?: IpoSummary;
-  transactions?: LedgerTransaction[];
-}
-
-export interface LedgerTransaction {
-  id: string;
-  type: 'capital' | 'expense' | 'profit';
-  amount: number;
-  date: string;
-  targetAccount: string;
-  memberName: string; // Member name or "સમૂહ" (Group)
-  notes: string;
 }
 
 export interface SystemAudit {
@@ -114,4 +103,4 @@ export interface SystemAudit {
 }
 
 // Routes navigation enum
-export type ActiveTab = 'dashboard' | 'members' | 'master_summary' | 'profit' | 'reports' | 'settings' | 'ipo' | 'accounts';
+export type ActiveTab = 'dashboard' | 'members' | 'master_summary' | 'profit' | 'reports' | 'settings' | 'ipo';
