@@ -1,26 +1,24 @@
 import { useState } from "react";
 import { Member, FINANCIAL_YEARS, SystemAudit, IpoSummary, IpoTrade } from "../types";
-import { Users2, Landmark, Clock, FileSpreadsheet, Eye, BarChart3, TrendingUp } from "lucide-react";
+import { Users2, Landmark, ReceiptText, FileSpreadsheet, Eye, BarChart3, TrendingUp } from "lucide-react";
 
 interface DashboardProps {
   members: Member[];
   searchTerm: string;
   recentLogs?: SystemAudit[];
   currentYear?: string;
-  grandTotalAmount?: number;
   onSelectMember: (id: string) => void;
   onNavigate: (tab: 'members' | 'master_summary' | 'profit' | 'reports' | 'ipo') => void;
   ipoSummary?: IpoSummary;
   ipoTrades?: IpoTrade[];
 }
 
-export default function Dashboard({ members, searchTerm, recentLogs = [], currentYear, grandTotalAmount, onSelectMember, onNavigate, ipoSummary, ipoTrades = [] }: DashboardProps) {
+export default function Dashboard({ members, searchTerm, recentLogs = [], currentYear, onSelectMember, onNavigate, ipoSummary, ipoTrades = [] }: DashboardProps) {
   const [memberFilter, setMemberFilter] = useState<'all' | 'due' | 'high_capital'>('all');
 
   const yearKeys = FINANCIAL_YEARS.map(y => y.id);
   const cy = currentYear || 'year2026';
   const holdingKey = `holding${cy.replace("year", "")}`;
-  const displayedGrandTotal = typeof grandTotalAmount === 'number' ? grandTotalAmount : null;
 
   // Filter members on search term + quick filters
   let finalMembers = members.filter(
@@ -52,22 +50,6 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
     (sum, m) => sum + yearKeys.reduce((mSum, key) => mSum + (m[key]?.expense || 0), 0),
     0
   );
-
-  // Auto-calculate holdings: Capital - Expense for each member (remaining in pool)
-  const totalOutstanding = members.reduce(
-    (sum, m) => {
-      const capVal = m[cy]?.capital || 0;
-      const expVal = m[cy]?.expense || 0;
-      return sum + (capVal - expVal);
-    },
-    0
-  );
-
-  const countWithRemaining = members.filter((m) => {
-    const capVal = m[cy]?.capital || 0;
-    const expVal = m[cy]?.expense || 0;
-    return (capVal - expVal) > 0;
-  }).length;
 
   // Compute percent change vs previous year (if present)
   const cyIndex = FINANCIAL_YEARS.findIndex(y => y.id === cy);
@@ -125,7 +107,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div>
               <p className="text-amber-900/60 font-medium text-sm">કુલ જમા રકમ (તમામ વર્ષ)</p>
               <h3 className="text-3xl font-extrabold text-amber-950 mt-2.5 font-sans tracking-tight">
-                ₹ {(displayedGrandTotal ?? Math.max(0, totalCapitalAllYears - totalExpenseAllYears - (ipoSummary?.activeInvested || 0) + (ipoSummary?.totalProfitLoss || 0))).toLocaleString("en-IN")}
+                ₹ {totalCapitalAllYears.toLocaleString("en-IN")}
               </h3>
               <p className="text-xs text-emerald-600 font-semibold mt-3 flex items-center gap-1">
                 <span>📈</span> ગયા વર્ષ કરતા {pctChange}% બદલાવ
@@ -142,23 +124,23 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
           </div>
         </div>
 
-        {/* KPI Card 3: Remaining Due Balance */}
-        <div className="bg-white p-6 rounded-2xl border-l-4 border-l-rose-500 border border-amber-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative overflow-hidden">
-          <div className="absolute top-2 right-2 text-rose-100 font-bold font-mono text-5xl select-none opacity-30 mt-2">
-            બાકી
+        {/* KPI Card 3: Total Expenses */}
+        <div className="bg-white p-6 rounded-2xl border-l-4 border-l-orange-500 border border-amber-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative overflow-hidden">
+          <div className="absolute top-2 right-2 text-orange-100 font-bold font-mono text-5xl select-none opacity-30 mt-2">
+            ખર્ચ
           </div>
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-amber-900/60 font-medium text-sm">બાકી રકમ (હોલ્ડિંગ)</p>
-              <h3 className="text-3xl font-extrabold text-[#991B1B] mt-2.5 font-sans tracking-tight">
-                ₹ {totalOutstanding.toLocaleString("en-IN")}
+              <p className="text-amber-900/60 font-medium text-sm">કુલ ખર્ચ (તમામ વર્ષ)</p>
+              <h3 className="text-3xl font-extrabold text-orange-700 mt-2.5 font-sans tracking-tight">
+                ₹ {totalExpenseAllYears.toLocaleString("en-IN")}
               </h3>
-              <p className="text-xs text-rose-600 font-semibold mt-3 flex items-center gap-1">
-                <span>⚠️</span> {countWithRemaining} સભ્યોની બાકી હોલ્ડિંગ ચૂકવણી
+              <p className="text-xs text-orange-600 font-semibold mt-3 flex items-center gap-1">
+                <span>▣</span> જમા સામે નોંધાયેલ કુલ ખર્ચ
               </p>
             </div>
-            <div className="bg-rose-50 p-3 rounded-xl text-rose-700">
-              <Clock className="size-6 stroke-[2px]" />
+            <div className="bg-orange-50 p-3 rounded-xl text-orange-700">
+              <ReceiptText className="size-6 stroke-[2px]" />
             </div>
           </div>
         </div>

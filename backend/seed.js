@@ -17,7 +17,7 @@ const MEMBERS = [
   {
     nameEn: 'V G RAJPUT',
     nameGu: 'વી. જી. રાજપૂત',
-    imageUrl: 'vg-rajput.jpeg',
+    imageUrl: 'https://res.cloudinary.com/demtjxg7q/image/upload/v1780377259/WhatsApp_Image_2026-05-28_at_12.37.38_PM_1_c5gxjz.jpg',
     gopiMandal: 0,
     notes: '',
     years: {
@@ -28,7 +28,7 @@ const MEMBERS = [
   {
     nameEn: 'A J PATEL',
     nameGu: 'એ. જે. પટેલ',
-    imageUrl: 'aj-patel.jpeg',
+    imageUrl: 'https://res.cloudinary.com/demtjxg7q/image/upload/v1780377259/WhatsApp_Image_2026-05-28_at_12.37.38_PM_ypnrvr.jpg',
     gopiMandal: 0,
     notes: '',
     years: {
@@ -39,7 +39,7 @@ const MEMBERS = [
   {
     nameEn: 'S C MODI',
     nameGu: 'એસ. સી. મોદી',
-    imageUrl: 'sc-modi.jpeg',
+    imageUrl: 'https://res.cloudinary.com/demtjxg7q/image/upload/v1780377259/WhatsApp_Image_2026-05-28_at_12.37.39_PM_mg1ar5.jpg',
     gopiMandal: 0,
     notes: '',
     years: {
@@ -50,7 +50,7 @@ const MEMBERS = [
   {
     nameEn: 'S B PATEL',
     nameGu: 'એસ. બી. પટેલ',
-    imageUrl: 'sb-patel.jpeg',
+    imageUrl: 'https://res.cloudinary.com/demtjxg7q/image/upload/v1780377261/WhatsApp_Image_2026-05-28_at_12.37.55_PM_fqerid.jpg',
     gopiMandal: 0,
     notes: '',
     years: {
@@ -61,7 +61,7 @@ const MEMBERS = [
   {
     nameEn: 'P M PRAJAPATI',
     nameGu: 'પી. એમ. પ્રજાપતિ',
-    imageUrl: 'pm-prajapati.jpeg',
+    imageUrl: 'https://res.cloudinary.com/demtjxg7q/image/upload/v1780377260/WhatsApp_Image_2026-05-28_at_12.38.46_PM_nwgrni.jpg',
     gopiMandal: 0,
     notes: '',
     years: {

@@ -35,6 +35,10 @@ const appStateSchema = new mongoose.Schema({
     type: Array,
     default: ['પિતૃ પક્ષ ખાતું (પિતાજી)', 'માતાજીનું ખાતું', 'પત્નીનું ખાતું', 'મોટા દાદીનું ખાતું'],
   },
+  transactions: {
+    type: Array,
+    default: [],
+  },
 }, {
   timestamps: true,
 });

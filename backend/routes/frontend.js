@@ -127,7 +127,14 @@ router.get('/data', async (req, res) => {
   try {
     const snapshot = await AppState.findOne({ key: 'main' }).lean();
     if (snapshot) {
-      const members = (snapshot.members || []).map((m, idx) => ({
+      const snapshotMembers = Array.isArray(snapshot.members) ? snapshot.members : [];
+      const hasSnapshotMembers = snapshotMembers.length > 0;
+
+      const membersRaw = hasSnapshotMembers
+        ? snapshotMembers
+        : await Member.find().sort({ nameEn: 1 }).lean();
+
+      const members = membersRaw.map((m, idx) => ({
         ...m,
         imageUrl: m.imageUrl && (m.imageUrl.startsWith('http') || m.imageUrl.startsWith('/api/'))
           ? m.imageUrl
