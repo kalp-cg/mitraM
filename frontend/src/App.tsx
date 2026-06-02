@@ -1005,6 +1005,10 @@ export default function App() {
                 <div className="flex flex-wrap gap-1">
                   {[
                     { l: "+૧૦k", v: 10000 },
+                    { l: "+૧૫k", v: 15000 },
+                    { l: "+૨૦k", v: 20000 },
+                    { l: "+૨૫k", v: 25000 },
+                    { l: "+૩૦k", v: 30000 },
                     { l: "+૫૦k", v: 50000 },
                     { l: "+૧L", v: 100000 },
                     { l: "+૨.૫L", v: 250000 },
