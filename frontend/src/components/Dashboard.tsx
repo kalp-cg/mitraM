@@ -123,7 +123,7 @@ export default function Dashboard({ members, searchTerm, recentLogs = [], curren
             <div>
               <p className="text-amber-900/60 font-medium text-sm">કુલ જમા રકમ (તમામ વર્ષ)</p>
               <h3 className="text-3xl font-extrabold text-amber-950 mt-2.5 font-sans tracking-tight">
-                ₹ {Math.max(0, totalCapitalAllYears - totalExpenseAllYears - (ipoSummary?.activeInvested || 0) + (ipoSummary?.totalProfitLoss || 0)).toLocaleString("en-IN")}
+                ₹ {Math.max(0, totalCapitalAllYears - (ipoSummary?.activeInvested || 0) + (ipoSummary?.totalProfitLoss || 0)).toLocaleString("en-IN")}
               </h3>
               <p className="text-xs text-emerald-600 font-semibold mt-3 flex items-center gap-1">
                 <span>📈</span> ગયા વર્ષ કરતા {pctChange}% બદલાવ
