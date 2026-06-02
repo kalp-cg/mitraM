@@ -17,7 +17,7 @@ const frontendRoutes = require('./routes/frontend');
 const app = express();
 const server = http.createServer(app);
 
-// CORS configuration supporting dynamic environment CORS_ORIGIN
+// CORS configuration supporting dynamic environment CORS_ORIGIN and automatic subdomains
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
   : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'];
@@ -26,7 +26,14 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, postman, or direct server calls)
     if (!origin) return callback(null, true);
-    if (process.env.CORS_ORIGIN === '*' || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+    
+    const isAllowed = process.env.CORS_ORIGIN === '*' || 
+                      allowedOrigins.includes('*') || 
+                      allowedOrigins.includes(origin) ||
+                      origin.endsWith('.vercel.app') ||
+                      origin.endsWith('.onrender.com');
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
