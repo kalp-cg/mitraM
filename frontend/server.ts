@@ -105,10 +105,8 @@ const DEFAULT_DATA = {
   appDescriptionGu: "ચોપડા પૂજન - ડિજિટલ ખાતાવહી",
   recentLogs: [],
   targetAccounts: [
-    "પિતૃ પક્ષ ખાતું (પિતાજી)",
-    "માતાજીનું ખાતું",
-    "પત્નીનું ખાતું",
-    "મોટા દાદીનું ખાતું"
+    "NILAM SBI",
+    "NILAM PRAJAPATI"
   ]
 };
 

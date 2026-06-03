@@ -53,7 +53,7 @@ const syncMasterRowsWithMembersBackend = (members, currentMasterRows, ipoTrades)
     const sumGopi = (members || []).reduce((sum, m) => sum + (m.gopiMandal || 0), 0);
 
     // Compute IPO adjustments for this financial year
-    const yearTrades = (ipoTrades || []).filter(t => t.year === yearKey);
+    const yearTrades = (ipoTrades || []).filter(t => t.year <= yearKey);
     const activeInvested = yearTrades.filter(t => t.status === 'holding').reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
     const realizedProfitLoss = yearTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (((t.sellPrice || 0) - (t.buyPrice || 0)) * (t.quantity || 1)), 0);
 
@@ -63,8 +63,8 @@ const syncMasterRowsWithMembersBackend = (members, currentMasterRows, ipoTrades)
     // Profit = Member Profits + realized IPO Profit/Loss
     if (profitIdx !== -1) updatedRows[profitIdx][col] = sumProfit + realizedProfitLoss;
     
-    // Holding = Member Holdings - active stock investment + realized profit/loss
-    if (holdingIdx !== -1) updatedRows[holdingIdx][col] = Math.max(0, sumHolding - activeInvested + realizedProfitLoss);
+    // Holding = Cumulative active stock investment value
+    if (holdingIdx !== -1) updatedRows[holdingIdx][col] = activeInvested;
     
     if (gopiIdx !== -1) updatedRows[gopiIdx][col] = sumGopi;
 
@@ -74,11 +74,12 @@ const syncMasterRowsWithMembersBackend = (members, currentMasterRows, ipoTrades)
     }
     
     if (grandIdx !== -1) {
-      updatedRows[grandIdx][col] = 
-        (updatedRows[remainingIdx]?.[col] || 0) + 
+      updatedRows[grandIdx][col] = Math.max(0,
+        ((updatedRows[incomeIdx]?.[col] || 0) - (updatedRows[expenseIdx]?.[col] || 0)) + 
         (updatedRows[profitIdx]?.[col] || 0) - 
         (updatedRows[holdingIdx]?.[col] || 0) + 
-        (updatedRows[gopiIdx]?.[col] || 0);
+        (updatedRows[gopiIdx]?.[col] || 0)
+      );
     }
   });
 
@@ -166,7 +167,7 @@ router.get('/data', async (req, res) => {
         appTitleGu: snapshot.appTitleGu || 'શુભ વ્યાપાર',
         appDescriptionGu: snapshot.appDescriptionGu || 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
         recentLogs: snapshot.recentLogs || [],
-        targetAccounts: snapshot.targetAccounts || ['પિતૃ પક્ષ ખાતું (પિતાજી)', 'માતાજીનું ખાતું', 'પત્નીનું ખાતું', 'મોટા દાદીનું ખાતું'],
+        targetAccounts: snapshot.targetAccounts || ['NILAM SBI', 'NILAM PRAJAPATI'],
         hanumanFull: '/api/image/hanuman-full',
         hanumanFace: '/api/image/hanuman-face',
         hanumanTurban: '/api/image/hanuman-turban',
@@ -284,7 +285,7 @@ router.get('/data', async (req, res) => {
       appTitleGu: 'શુભ વ્યાપાર',
       appDescriptionGu: 'ચોપડા પૂજન ડિજિટલ ખાતાવહી',
       recentLogs: [],
-      targetAccounts: ['પિતૃ પક્ષ ખાતું (પિતાજી)', 'માતાજીનું ખાતું', 'પત્નીનું ખાતું', 'મોટા દાદીનું ખાતું'],
+      targetAccounts: ['NILAM SBI', 'NILAM PRAJAPATI'],
       hanumanFull: '/api/image/hanuman-full',
       ipoTrades: ipoTrades.map(t => ({ ...t, id: String(t._id) })),
       ipoSummary,

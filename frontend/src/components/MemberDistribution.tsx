@@ -64,7 +64,7 @@ export default function MemberDistribution({ members, onSaveMembers, currentYear
 
   // 1. Calculate Mandal's Year 2 active IPO investments (properly multiplied by quantity!)
   const activeInvestedY2 = ipoTrades
-    .filter(t => t.year === y2Key && t.status === 'holding')
+    .filter(t => t.year <= y2Key && t.status === 'holding')
     .reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
 
   // 2. Divided equally among active members

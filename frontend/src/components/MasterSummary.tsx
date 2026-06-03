@@ -51,7 +51,7 @@ export default function MasterSummary({ masterRows, onSaveMasterRows, ipoTrades 
       const col = yf.masterKey;
       const yearKey = yf.id;
 
-      const yearTrades = ipoTrades.filter(t => t.year === yearKey);
+      const yearTrades = ipoTrades.filter(t => t.year <= yearKey);
       const activeInvested = yearTrades.filter(t => t.status === 'holding').reduce((s, t) => s + ((t.buyPrice || 0) * (t.quantity || 1)), 0);
       const realizedProfitLoss = yearTrades.filter(t => t.status === 'sold').reduce((s, t) => s + (((t.sellPrice || 0) - (t.buyPrice || 0)) * (t.quantity || 1)), 0);
       
@@ -60,17 +60,16 @@ export default function MasterSummary({ masterRows, onSaveMasterRows, ipoTrades 
       }
       
       if (holdingIdx !== -1) {
-        const incomeVal = updated[incomeIdx]?.[col] || 0;
-        const expenseVal = updated[expenseIdx]?.[col] || 0;
-        updated[holdingIdx][col] = Math.max(0, incomeVal - expenseVal - activeInvested + realizedProfitLoss);
+        updated[holdingIdx][col] = activeInvested;
       }
 
       if (grandIdx !== -1) {
-        updated[grandIdx][col] = 
-          (updated[remainingIdx]?.[col] || 0) + 
+        updated[grandIdx][col] = Math.max(0,
+          ((updated[incomeIdx]?.[col] || 0) - (updated[expenseIdx]?.[col] || 0)) + 
           (updated[profitIdx]?.[col] || 0) - 
           (updated[holdingIdx]?.[col] || 0) + 
-          (updated[gopiIdx]?.[col] || 0);
+          (updated[gopiIdx]?.[col] || 0)
+        );
       }
     });
 

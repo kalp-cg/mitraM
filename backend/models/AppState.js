@@ -33,7 +33,7 @@ const appStateSchema = new mongoose.Schema({
   },
   targetAccounts: {
     type: Array,
-    default: ['પિતૃ પક્ષ ખાતું (પિતાજી)', 'માતાજીનું ખાતું', 'પત્નીનું ખાતું', 'મોટા દાદીનું ખાતું'],
+    default: ['NILAM SBI', 'NILAM PRAJAPATI'],
   },
   transactions: {
     type: Array,
