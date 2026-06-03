@@ -247,9 +247,12 @@ if (BACKEND_URL) {
 // API Endpoints
 app.post("/api/login", (req, res) => {
   const { id, password } = req.body;
-  if (id === "user" && password === "123456") {
+  const adminUsername = process.env.ADMIN_USERNAME || "jaymataji";
+  const adminPassword = process.env.ADMIN_PASSWORD || "sarangpur-kahoda";
+
+  if (id === adminUsername && password === adminPassword) {
     activeSessionsCount = Math.min(5, activeSessionsCount + 1); // Mock 5 allowed concurrent users
-    res.json({ success: true, user: "user", sessions: activeSessionsCount, token: "shubh_vyapar_token_2026" });
+    res.json({ success: true, user: adminUsername, sessions: activeSessionsCount, token: "shubh_vyapar_token_2026" });
   } else {
     res.status(401).json({ success: false, messageGu: "ખોટો યુઝર આઈડી અથવા પાસવર્ડ!" });
   }

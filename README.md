@@ -90,8 +90,8 @@ You can run the web dashboard locally with **zero configuration** using the mock
     npm run dev
     ```
 4.  Open your browser to [http://localhost:3000](http://localhost:3000) and login with:
-    *   **User ID**: `user`
-    *   **Password**: `123456`
+    *   **User ID**: Check `.env` for `ADMIN_USERNAME`
+    *   **Password**: Check `.env` for `ADMIN_PASSWORD`
 
 ---
 

@@ -92,10 +92,13 @@ router.post('/login', async (req, res) => {
     const { id, password } = req.body;
     if (!id || !password) return res.status(400).json({ success: false, messageGu: 'યુઝર આઈડી અને પાસવર્ડ જરૂરી છે' });
 
+    const adminUsername = process.env.ADMIN_USERNAME || 'jaymataji';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'sarangpur-kahoda';
+
     const user = await User.findOne({ username: id }).catch(() => null);
     if (!user) {
-      if (id === 'user' && password === '123456') {
-        const token = jwt.sign({ userId: 'mock_user_id', username: 'user' }, process.env.JWT_SECRET || 'mitram_gujarati_hisab_2024_secret_key', { expiresIn: '30d' });
+      if (id === adminUsername && password === adminPassword) {
+        const token = jwt.sign({ userId: 'mock_user_id', username: adminUsername }, process.env.JWT_SECRET || 'mitram_gujarati_hisab_2024_secret_key', { expiresIn: '30d' });
         return res.json({ success: true, token });
       }
       return res.status(401).json({ success: false, messageGu: 'ખોટી વિગત' });
@@ -103,8 +106,8 @@ router.post('/login', async (req, res) => {
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
-      if (id === 'user' && password === '123456') {
-        const token = jwt.sign({ userId: 'mock_user_id', username: 'user' }, process.env.JWT_SECRET || 'mitram_gujarati_hisab_2024_secret_key', { expiresIn: '30d' });
+      if (id === adminUsername && password === adminPassword) {
+        const token = jwt.sign({ userId: 'mock_user_id', username: adminUsername }, process.env.JWT_SECRET || 'mitram_gujarati_hisab_2024_secret_key', { expiresIn: '30d' });
         return res.json({ success: true, token });
       }
       return res.status(401).json({ success: false, messageGu: 'ખોટી વિગત' });

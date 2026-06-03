@@ -84,12 +84,15 @@ async function seed() {
     console.log('🗑️  Cleared existing data');
 
     // Create shared user
-    const hashedPassword = await bcrypt.hash('123456', 10);
+    const adminUsername = process.env.ADMIN_USERNAME || 'jaymataji';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'sarangpur-kahoda';
+
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     await User.create({
-      username: 'user',
+      username: adminUsername,
       password: hashedPassword
     });
-    console.log('👤 Created user: user / 123456');
+    console.log(`👤 Created user: ${adminUsername} / (hidden password)`);
 
     // Create members
     for (const memberData of MEMBERS) {
@@ -115,7 +118,7 @@ async function seed() {
     console.log('📊 Created master summary report');
 
     console.log('\n✅ Database seeded successfully!');
-    console.log('   Login: user / 123456');
+    console.log(`   Login: ${process.env.ADMIN_USERNAME || 'jaymataji'} / (hidden password)`);
     console.log('   Members: 5');
     console.log('   Years: 2023, 2024\n');
 

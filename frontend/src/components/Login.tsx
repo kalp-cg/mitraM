@@ -107,7 +107,7 @@ export default function Login({ onSuccess }: LoginProps) {
                 <input
                   id="password"
                   type="password"
-                  placeholder="સાચો પાસવર્ડ લખો (e.g. 123456)"
+                  placeholder="સાચો પાસવર્ડ લખો"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full pl-10 pr-4 py-3 bg-brand-cream border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-orange focus:border-brand-orange transition-colors placeholder:text-brand-soil/40 text-brand-soil font-medium text-[16px]"
@@ -152,8 +152,7 @@ export default function Login({ onSuccess }: LoginProps) {
               વડીલો માટે મદદ
             </h4>
             <ul className="space-y-1.5 text-xs text-brand-soil/80 font-semibold leading-relaxed list-disc list-inside">
-              <li>રજીસ્ટર્ડ યુઝર આઈડી: <code className="font-mono bg-brand-lightcream px-1 py-0.5 rounded text-brand-soil font-bold text-xs ml-1">user</code></li>
-              <li>પાસવર્ડ: <code className="font-mono bg-brand-lightcream px-1 py-0.5 rounded text-brand-soil font-bold text-xs ml-1">123456</code></li>
+              <li>રજીસ્ટર્ડ યુઝર આઈડી અને પાસવર્ડ માટે એડમિનનો સંપર્ક કરો.</li>
               <li>એક સાથે પાંચ સભ્યો અલગ ઉપકરણોથી લોગીન કરી શકે છે.</li>
             </ul>
           </div>

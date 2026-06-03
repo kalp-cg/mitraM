@@ -16,18 +16,21 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    const adminUsername = process.env.ADMIN_USERNAME || 'jaymataji';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'sarangpur-kahoda';
+
     const user = await User.findOne({ username }).catch(() => null);
     if (!user) {
-      if (username === 'user' && password === '123456') {
+      if (username === adminUsername && password === adminPassword) {
         const token = jwt.sign(
-          { userId: 'mock_user_id', username: 'user' },
+          { userId: 'mock_user_id', username: adminUsername },
           process.env.JWT_SECRET || 'mitram_gujarati_hisab_2024_secret_key',
           { expiresIn: '30d' }
         );
         return res.json({
           message: 'સફળ પ્રવેશ',
           token,
-          user: { id: 'mock_user_id', username: 'user' }
+          user: { id: 'mock_user_id', username: adminUsername }
         });
       }
       return res.status(401).json({ 
@@ -37,16 +40,16 @@ router.post('/login', async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      if (username === 'user' && password === '123456') {
+      if (username === adminUsername && password === adminPassword) {
         const token = jwt.sign(
-          { userId: 'mock_user_id', username: 'user' },
+          { userId: 'mock_user_id', username: adminUsername },
           process.env.JWT_SECRET || 'mitram_gujarati_hisab_2024_secret_key',
           { expiresIn: '30d' }
         );
         return res.json({
           message: 'સફળ પ્રવેશ',
           token,
-          user: { id: 'mock_user_id', username: 'user' }
+          user: { id: 'mock_user_id', username: adminUsername }
         });
       }
       return res.status(401).json({ 
