@@ -32,7 +32,9 @@ const corsOptions = {
                       allowedOrigins.includes('*') || 
                       allowedOrigins.includes(origin) ||
                       origin.endsWith('.vercel.app') ||
-                      origin.endsWith('.onrender.com');
+                      origin.endsWith('.onrender.com') ||
+                      origin.includes('shukaninvestment.in');
+                      origin.includes('www.shukaninvestment.in')
 
     if (isAllowed) {
       callback(null, true);
