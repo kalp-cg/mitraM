@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IpoTrade, IpoSummary, FINANCIAL_YEARS } from "../types";
 import { Plus, TrendingUp, TrendingDown, Package, DollarSign, X, Edit2, Trash2, Check, BarChart3 } from "lucide-react";
 
@@ -26,6 +26,12 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
 
   const [filter, setFilter] = useState<'all' | 'holding' | 'sold'>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset pagination when active filter or year filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, yearFilter]);
 
   // Form state for adding new trade
   const [formShareName, setFormShareName] = useState("");
@@ -47,8 +53,23 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
   if (filter === 'sold') filteredTrades = filteredTrades.filter(t => t.status === 'sold');
   if (yearFilter !== 'all') filteredTrades = filteredTrades.filter(t => t.year === yearFilter);
 
-  // Running balance
-  let runningBalance = 0;
+  // Pre-compute cumulative running balance for all filtered trades
+  let cumulativeBalance = 0;
+  const tradesWithRunningBalance = filteredTrades.map((trade) => {
+    const totalBuy = (trade.buyPrice || 0) * (trade.quantity || 1);
+    const totalSell = (trade.sellPrice || 0) * (trade.quantity || 1);
+    
+    cumulativeBalance += totalBuy;
+    if (trade.status === 'sold') {
+      cumulativeBalance -= totalBuy;
+      cumulativeBalance += totalSell;
+    }
+
+    return {
+      ...trade,
+      runningBalanceAtThisPoint: cumulativeBalance
+    };
+  });
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -299,92 +320,90 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                   </td>
                 </tr>
               ) : (
-                filteredTrades.map((trade, idx) => {
-                  const totalBuy = (trade.buyPrice || 0) * (trade.quantity || 1);
-                  const totalSell = (trade.sellPrice || 0) * (trade.quantity || 1);
-                  
-                  runningBalance += totalBuy;
-                  if (trade.status === 'sold') {
-                    runningBalance -= totalBuy;
-                    runningBalance += totalSell;
-                  }
+                (() => {
+                  const itemsPerPage = 10;
+                  const startIndex = (currentPage - 1) * itemsPerPage;
+                  const paginatedTrades = tradesWithRunningBalance.slice(startIndex, startIndex + itemsPerPage);
+                  return paginatedTrades.map((trade, idx) => {
+                    const totalBuy = (trade.buyPrice || 0) * (trade.quantity || 1);
+                    const totalSell = (trade.sellPrice || 0) * (trade.quantity || 1);
+                    const pl = trade.status === 'sold' ? (totalSell - totalBuy) : 0;
 
-                  const pl = trade.status === 'sold' ? (totalSell - totalBuy) : 0;
-
-                  return (
-                    <tr key={trade.id} className="hover:bg-amber-50/30 transition-colors">
-                      <td className="py-3 px-4 font-mono text-amber-700 border-r border-amber-100/50">{idx + 1}</td>
-                      <td className="py-3 px-4 border-r border-amber-100/50">
-                        <div className="font-extrabold text-amber-950">{trade.shareName}</div>
-                        {trade.dematAccount && (
-                          <div className="text-[10px] text-amber-600 font-medium mt-0.5">{trade.dematAccount}</div>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">{formatDate(trade.buyDate)}</td>
-                      <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
-                        <div className="font-extrabold">₹{(trade.buyPrice || 0).toLocaleString("en-IN")}</div>
-                        <div className="text-[10px] text-amber-600/80 font-bold">કુલ: ₹{totalBuy.toLocaleString("en-IN")}</div>
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">{trade.quantity}</td>
-                      <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
-                        {trade.status === 'sold' ? formatDate(trade.sellDate) : '—'}
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
-                        {trade.status === 'sold' ? (
-                          <>
-                            <div className="font-extrabold">₹{(trade.sellPrice || 0).toLocaleString("en-IN")}</div>
-                            <div className="text-[10px] text-emerald-600/80 font-bold">કુલ: ₹{totalSell.toLocaleString("en-IN")}</div>
-                          </>
-                        ) : '—'}
-                      </td>
-                      <td className={`py-3 px-4 text-right font-mono font-extrabold border-r border-amber-100/50 ${
-                        trade.status !== 'sold' ? 'text-amber-500' : pl >= 0 ? 'text-emerald-700' : 'text-red-700'
-                      }`}>
-                        {trade.status !== 'sold' ? '—' : (
-                          <>{pl >= 0 ? '+' : ''}₹{pl.toLocaleString("en-IN")}</>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center border-r border-amber-100/50">
-                        {trade.status === 'holding' ? (
-                          <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                            📦 Holding
-                          </span>
-                        ) : (
-                          <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            ✅ Sold
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50 text-amber-800">
-                        ₹{runningBalance.toLocaleString("en-IN")}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          {trade.status === 'holding' && (
-                            <button
-                              onClick={() => openSellModal(trade)}
-                              className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg cursor-pointer transition-colors"
-                              title="વેચો (Sell)"
-                            >
-                              <TrendingUp className="size-3.5" />
-                            </button>
+                    return (
+                      <tr key={trade.id} className="hover:bg-amber-50/30 transition-colors">
+                        <td className="py-3 px-4 font-mono text-amber-700 border-r border-amber-100/50">{startIndex + idx + 1}</td>
+                        <td className="py-3 px-4 border-r border-amber-100/50">
+                          <div className="font-extrabold text-amber-950">{trade.shareName}</div>
+                          {trade.dematAccount && (
+                            <div className="text-[10px] text-amber-600 font-medium mt-0.5">{trade.dematAccount}</div>
                           )}
-                          <button
-                            onClick={() => {
-                              if (window.confirm('શું તમે આ ટ્રેડ કાઢી નાખવા માંગો છો?')) {
-                                onDeleteTrade(trade.id);
-                              }
-                            }}
-                            className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer transition-colors"
-                            title="કાઢી નાખો (Delete)"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">{formatDate(trade.buyDate)}</td>
+                        <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
+                          <div className="font-extrabold">₹{(trade.buyPrice || 0).toLocaleString("en-IN")}</div>
+                          <div className="text-[10px] text-amber-600/80 font-bold">કુલ: ₹{totalBuy.toLocaleString("en-IN")}</div>
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">{trade.quantity}</td>
+                        <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
+                          {trade.status === 'sold' ? formatDate(trade.sellDate) : '—'}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50">
+                          {trade.status === 'sold' ? (
+                            <>
+                              <div className="font-extrabold">₹{(trade.sellPrice || 0).toLocaleString("en-IN")}</div>
+                              <div className="text-[10px] text-emerald-600/80 font-bold">કુલ: ₹{totalSell.toLocaleString("en-IN")}</div>
+                            </>
+                          ) : '—'}
+                        </td>
+                        <td className={`py-3 px-4 text-right font-mono font-extrabold border-r border-amber-100/50 ${
+                          trade.status !== 'sold' ? 'text-amber-500' : pl >= 0 ? 'text-emerald-700' : 'text-red-700'
+                        }`}>
+                          {trade.status !== 'sold' ? '—' : (
+                            <>{pl >= 0 ? '+' : ''}₹{pl.toLocaleString("en-IN")}</>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center border-r border-amber-100/50">
+                          {trade.status === 'holding' ? (
+                            <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                              📦 Holding
+                            </span>
+                          ) : (
+                            <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              ✅ Sold
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono border-r border-amber-100/50 text-amber-800">
+                          ₹{trade.runningBalanceAtThisPoint.toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {trade.status === 'holding' && (
+                              <button
+                                onClick={() => openSellModal(trade)}
+                                className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg cursor-pointer transition-colors"
+                                title="વેચો (Sell)"
+                              >
+                                <TrendingUp className="size-3.5" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                if (window.confirm('શું તમે આ ટ્રેડ કાઢી નાખવા માંગો છો?')) {
+                                  onDeleteTrade(trade.id);
+                                }
+                              }}
+                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer transition-colors"
+                              title="કાઢી નાખો (Delete)"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()
               )}
 
               {/* Totals Row */}
@@ -417,6 +436,45 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {filteredTrades.length > 10 && (() => {
+          const itemsPerPage = 10;
+          const totalPages = Math.ceil(filteredTrades.length / itemsPerPage);
+          return (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-amber-100 bg-[#FFFDF5]/30 select-none print:hidden">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className="px-3 py-1.5 rounded-lg border border-amber-200 bg-white text-xs font-bold text-amber-950 hover:bg-brand-cream disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              >
+                પૂર્વ (Prev)
+              </button>
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`size-8 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                      currentPage === p
+                        ? "bg-brand-orange text-white border-brand-orange"
+                        : "bg-white text-amber-950 border-amber-200 hover:bg-brand-cream"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className="px-3 py-1.5 rounded-lg border border-amber-200 bg-white text-xs font-bold text-amber-950 hover:bg-brand-cream disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              >
+                આગળ (Next)
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* ===== ADD TRADE MODAL ===== */}

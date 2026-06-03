@@ -11,7 +11,9 @@ import {
   Plus, 
   Info,
   FlameKindling,
-  Notebook
+  Notebook,
+  Menu,
+  X
 } from "lucide-react";
 
 import { ActiveTab, Member, MasterRow, AppData, IpoTrade, FINANCIAL_YEARS, LedgerTransaction } from "./types";
@@ -124,6 +126,7 @@ export default function App() {
   const [groupTransactionType, setGroupTransactionType] = useState<"capital" | "expense" | "profit">("capital");
   const [groupTargetAccount, setGroupTargetAccount] = useState("");
   const [selectedGroupMembers, setSelectedGroupMembers] = useState<string[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Load auth token on start
   useEffect(() => {
@@ -594,142 +597,173 @@ export default function App() {
     <div className="min-h-screen bg-brand-cream flex flex-col md:flex-row font-sans selection:bg-brand-wheat selection:text-brand-soil text-brand-soil overflow-x-hidden">
       
       {/* Sidebar Navigation - Styled identically to Design HTML */}
-      <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-brand-border flex flex-col justify-between shrink-0 select-none print:hidden">
-        <div>
-          {/* Spiritual Gilded Cover Badge / Hanuman Banner Accent */}
-          <div className="p-6 border-b border-brand-border bg-gradient-to-br from-brand-lightcream to-transparent flex flex-col items-center text-center">
-            {/* Spiritual Circular Icon Icon like Design HTML Saffron Banner */}
-            <div className="w-24 h-24 bg-brand-saffron rounded-full flex items-center justify-center mb-3 shadow-md border-4 border-white">
-              <span className="text-4xl">🚩</span>
-            </div>
-            <h2 className="text-xl font-bold text-brand-orange text-center tracking-tight">શ્રી હનુમાન દાદા</h2>
-            <p className="text-xs text-brand-soil/50 mt-1 font-semibold uppercase tracking-wider">હિસાબ વ્યવસ્થાપન</p>
+      <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-brand-border flex flex-col shrink-0 select-none print:hidden">
+        {/* Mobile Sidebar Header */}
+        <div className="p-4 flex items-center justify-between md:hidden border-b border-brand-border bg-gradient-to-br from-brand-lightcream to-transparent">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🚩</span>
+            <span className="font-bold text-brand-orange text-sm">શ્રી હનુમાન દાદા હિસાબ</span>
           </div>
-
-          {/* Nav Items Group */}
-          <nav className="flex-1 py-4">
-            {/* Dashboard Button */}
-            <button
-              onClick={() => { setActiveTab("dashboard"); setSelectedMemberId(null); }}
-              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
-                activeTab === "dashboard"
-                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
-                  : "text-brand-soil hover:bg-brand-lightcream"
-              }`}
-            >
-              <span className="mr-3 text-lg">🏠</span>
-              <span>ડેશબોર્ડ</span>
-            </button>
-
-            {/* Members List Button */}
-            <button
-              onClick={() => { setActiveTab("members"); setSelectedMemberId(null); }}
-              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
-                activeTab === "members"
-                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
-                  : "text-brand-soil hover:bg-brand-lightcream"
-              }`}
-            >
-              <span className="mr-3 text-lg">👥</span>
-              <span>સભ્યો</span>
-            </button>
-
-            {/* Master Summary Button */}
-            <button
-              onClick={() => { setActiveTab("master_summary"); setSelectedMemberId(null); }}
-              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
-                activeTab === "master_summary"
-                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
-                  : "text-brand-soil hover:bg-brand-lightcream"
-              }`}
-            >
-              <span className="mr-3 text-lg">📊</span>
-              <span>મુખ્ય હિસાબ</span>
-            </button>
-
-            {/* Member Distribution Button */}
-            <button
-              onClick={() => { setActiveTab("profit"); setSelectedMemberId(null); }}
-              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
-                activeTab === "profit"
-                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
-                  : "text-brand-soil hover:bg-brand-lightcream"
-              }`}
-            >
-              <span className="mr-3 text-lg">💰</span>
-              <span>નફો</span>
-            </button>
-
-            {/* Reports Button */}
-            <button
-              onClick={() => { setActiveTab("reports"); setSelectedMemberId(null); }}
-              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
-                activeTab === "reports"
-                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
-                  : "text-brand-soil hover:bg-brand-lightcream"
-              }`}
-            >
-              <span className="mr-3 text-lg">📄</span>
-              <span>રિપોર્ટ્સ</span>
-            </button>
-
-            {/* IPO Trading Button */}
-            <button
-              onClick={() => { setActiveTab("ipo"); setSelectedMemberId(null); }}
-              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
-                activeTab === "ipo"
-                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
-                  : "text-brand-soil hover:bg-brand-lightcream"
-              }`}
-            >
-              <span className="mr-3 text-lg">📈</span>
-              <span>IPO ટ્રેડિંગ</span>
-            </button>
-
-            {/* Accounts Ledger Button */}
-            <button
-              onClick={() => { setActiveTab("accounts"); setSelectedMemberId(null); }}
-              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
-                activeTab === "accounts"
-                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
-                  : "text-brand-soil hover:bg-brand-lightcream"
-              }`}
-            >
-              <span className="mr-3 text-lg">🏦</span>
-              <span>વ્યવહાર ખાતા</span>
-            </button>
-
-            {/* Settings Button */}
-            <button
-              onClick={() => { setActiveTab("settings"); setSelectedMemberId(null); }}
-              className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
-                activeTab === "settings"
-                  ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
-                  : "text-brand-soil hover:bg-brand-lightcream"
-              }`}
-            >
-              <span className="mr-3 text-lg">⚙️</span>
-              <span>સેટિંગ્સ</span>
-            </button>
-          </nav>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-1.5 text-brand-soil hover:text-brand-orange transition-colors cursor-pointer bg-brand-lightcream/50 rounded-lg"
+          >
+            {isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
         </div>
 
-        {/* Dynamic Plus New Transaction Trigger - Beautiful Saffron Accent */}
-        <div className="p-6 border-t border-brand-border">
-          <button
-            onClick={() => {
-              if (appData && appData.members.length > 0) {
-                setModalMemberId(appData.members[0].id);
-                setSelectedGroupMembers(appData.members.map(m => m.id));
-              }
-              setModalTab("individual");
-              setShowAddModal(true);
-            }}
-            className="w-full bg-brand-orange hover:bg-opacity-90 active:scale-98 text-white font-bold py-3.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer font-sans"
-          >
-            <Plus className="size-4.5 stroke-[3px]" />
-            <span>નવો હિસાબ ઉમેરો</span>
-          </button>
+        {/* Sidebar Body - Collapsible on Mobile */}
+        <div className={`${isMobileMenuOpen ? "flex" : "hidden"} md:flex flex-col justify-between flex-1`}>
+          <div>
+            {/* Spiritual Gilded Cover Badge / Hanuman Banner Accent */}
+            <div className="hidden md:flex p-6 border-b border-brand-border bg-gradient-to-br from-brand-lightcream to-transparent flex-col items-center text-center">
+              {/* Spiritual Circular Icon Icon like Design HTML Saffron Banner */}
+              <div className="w-24 h-24 bg-brand-saffron rounded-full flex items-center justify-center mb-3 shadow-md border-4 border-white">
+                <span className="text-4xl">🚩</span>
+              </div>
+              <h2 className="text-xl font-bold text-brand-orange text-center tracking-tight">શ્રી હનુમાન દાદા</h2>
+              <p className="text-xs text-brand-soil/50 mt-1 font-semibold uppercase tracking-wider">હિસાબ વ્યવસ્થાપન</p>
+            </div>
+
+            {/* Nav Items Group */}
+            <nav className="flex-1 py-4">
+              {/* Dashboard Button */}
+              <button
+                onClick={() => { setActiveTab("dashboard"); setSelectedMemberId(null); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                  activeTab === "dashboard"
+                    ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                    : "text-brand-soil hover:bg-brand-lightcream"
+                }`}
+              >
+                <span className="mr-3 text-lg">🏠</span>
+                <span>ડેશબોર્ડ</span>
+              </button>
+
+              {/* Members List Button */}
+              <button
+                onClick={() => { setActiveTab("members"); setSelectedMemberId(null); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                  activeTab === "members"
+                    ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                    : "text-brand-soil hover:bg-brand-lightcream"
+                }`}
+              >
+                <span className="mr-3 text-lg">👥</span>
+                <span>સભ્યો</span>
+              </button>
+
+              {/* Master Summary Button */}
+              <button
+                onClick={() => { setActiveTab("master_summary"); setSelectedMemberId(null); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                  activeTab === "master_summary"
+                    ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                    : "text-brand-soil hover:bg-brand-lightcream"
+                }`}
+              >
+                <span className="mr-3 text-lg">📊</span>
+                <span>મુખ્ય હિસાબ</span>
+              </button>
+
+              {/* Member Distribution Button */}
+              <button
+                onClick={() => { setActiveTab("profit"); setSelectedMemberId(null); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                  activeTab === "profit"
+                    ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                    : "text-brand-soil hover:bg-brand-lightcream"
+                }`}
+              >
+                <span className="mr-3 text-lg">💰</span>
+                <span>નફો</span>
+              </button>
+
+              {/* Reports Button */}
+              <button
+                onClick={() => { setActiveTab("reports"); setSelectedMemberId(null); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                  activeTab === "reports"
+                    ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                    : "text-brand-soil hover:bg-brand-lightcream"
+                }`}
+              >
+                <span className="mr-3 text-lg">📄</span>
+                <span>રિપોર્ટ્સ</span>
+              </button>
+
+              {/* IPO Trading Button */}
+              <button
+                onClick={() => { setActiveTab("ipo"); setSelectedMemberId(null); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                  activeTab === "ipo"
+                    ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                    : "text-brand-soil hover:bg-brand-lightcream"
+                }`}
+              >
+                <span className="mr-3 text-lg">📈</span>
+                <span>IPO ટ્રેડિંગ</span>
+              </button>
+
+              {/* Accounts Ledger Button */}
+              <button
+                onClick={() => { setActiveTab("accounts"); setSelectedMemberId(null); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                  activeTab === "accounts"
+                    ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                    : "text-brand-soil hover:bg-brand-lightcream"
+                }`}
+              >
+                <span className="mr-3 text-lg">🏦</span>
+                <span>વ્યવહાર ખાતા</span>
+              </button>
+
+              {/* Settings Button */}
+              <button
+                onClick={() => { setActiveTab("settings"); setSelectedMemberId(null); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center px-6 py-3 transition-colors text-sm font-bold cursor-pointer ${
+                  activeTab === "settings"
+                    ? "bg-brand-wheat border-r-4 border-brand-orange text-brand-soil"
+                    : "text-brand-soil hover:bg-brand-lightcream"
+                }`}
+              >
+                <span className="mr-3 text-lg">⚙️</span>
+                <span>સેટિંગ્સ</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* Dynamic Plus New Transaction Trigger - Beautiful Saffron Accent */}
+          <div className="p-6 border-t border-brand-border flex flex-col gap-3">
+            <button
+              onClick={() => {
+                if (appData && appData.members.length > 0) {
+                  setModalMemberId(appData.members[0].id);
+                  setSelectedGroupMembers(appData.members.map(m => m.id));
+                }
+                setModalTab("individual");
+                setShowAddModal(true);
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full bg-brand-orange hover:bg-opacity-90 active:scale-98 text-white font-bold py-3.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer font-sans"
+            >
+              <Plus className="size-4.5 stroke-[3px]" />
+              <span>નવો હિસાબ ઉમેરો</span>
+            </button>
+
+            {/* Developer Credit Link */}
+            <div className="text-center text-[10px] text-brand-soil/60 font-medium select-none mt-1">
+              Made with ❤️ by{" "}
+              <a
+                href="https://kalppatel.me"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-orange hover:text-brand-saffron font-bold transition-all hover:underline"
+              >
+                Kalp Patel
+              </a>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -762,12 +796,27 @@ export default function App() {
           </AnimatePresence>
         </main>
 
+        {/* Mobile Floating Action Button (FAB) for New Transaction - Always visible */}
+        <button
+          onClick={() => {
+            if (appData && appData.members.length > 0) {
+              setModalMemberId(appData.members[0].id);
+              setSelectedGroupMembers(appData.members.map(m => m.id));
+            }
+            setModalTab("individual");
+            setShowAddModal(true);
+          }}
+          className="fixed bottom-6 right-6 z-40 md:hidden bg-brand-orange hover:bg-brand-saffron active:scale-95 text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition-all cursor-pointer border border-white/20"
+          title="નવો હિસાબ ઉમેરો"
+        >
+          <Plus className="size-6 stroke-[3px]" />
+        </button>
+
         {/* Global Footer Gilded Seal */}
         <footer className="py-4 border-t border-brand-border text-center text-xs text-brand-soil/60 font-semibold bg-white print:hidden">
-          © ૨૦૨૬ શુભ વ્યાપાર હિસાબી રજીસ્ટ્રાર મંડળ • વડીલોની સરળતા અર્થે
+          © ૨૦૨૬ શુભ વ્યાપાર હિસાબી રજીસ્ટ્રાર મંડળ • વડીલોની સરળતા અર્થે • Designed & Developed by <a href="https://kalppatel.me" target="_blank" rel="noopener noreferrer" className="text-brand-orange hover:text-brand-saffron font-bold transition-all hover:underline">Kalp Patel</a>
         </footer>
       </div>
-
       {/* Dynamic "+ નવો હિસાબ" Form Modal Dialog */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">

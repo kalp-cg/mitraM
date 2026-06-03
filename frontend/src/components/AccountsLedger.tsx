@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LedgerTransaction } from "../types";
 import { Landmark, Search, PlusCircle, ArrowUpRight, ArrowDownRight, Wallet, Printer, FileSpreadsheet, Trash2 } from "lucide-react";
 
@@ -10,6 +10,12 @@ interface AccountsLedgerProps {
 export default function AccountsLedger({ targetAccounts, transactions = [] }: AccountsLedgerProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset pagination when active account or search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedAccount, searchTerm]);
 
   // Extract all unique account names from both presets and actual transactions
   const allAccountNames = Array.from(
@@ -239,41 +245,85 @@ export default function AccountsLedger({ targetAccounts, transactions = [] }: Ac
                       </td>
                     </tr>
                   ) : (
-                    activeAccountData.txs.map((tx, idx) => (
-                      <tr key={tx.id} className="hover:bg-amber-50/10 transition-colors">
-                        {/* Index */}
-                        <td className="py-3 px-4 font-mono text-amber-700 border-r border-amber-100/50 text-center">{idx + 1}</td>
-                        
-                        {/* Date */}
-                        <td className="py-3 px-4 text-center font-mono border-r border-amber-100/50">{tx.date}</td>
-                        
-                        {/* Member Name */}
-                        <td className="py-3 px-4 border-r border-amber-100/50">
-                          <div className="font-extrabold text-amber-950">{tx.memberName}</div>
-                        </td>
-                        
-                        {/* Type Badge */}
-                        <td className="py-3 px-4 text-center border-r border-amber-100/50">
-                          {getTypeBadge(tx.type)}
-                        </td>
-                        
-                        {/* Amount */}
-                        <td className={`py-3 px-4 text-right font-mono font-bold border-r border-amber-100/50 text-xs md:text-sm ${
-                          tx.type === "expense" ? "text-rose-700" : "text-emerald-700"
-                        }`}>
-                          {tx.type === "expense" ? "-" : "+"}₹{tx.amount.toLocaleString("en-IN")}
-                        </td>
+                    (() => {
+                      const itemsPerPage = 10;
+                      const startIndex = (currentPage - 1) * itemsPerPage;
+                      const paginatedTxs = activeAccountData.txs.slice(startIndex, startIndex + itemsPerPage);
+                      return paginatedTxs.map((tx, idx) => (
+                        <tr key={tx.id} className="hover:bg-amber-50/10 transition-colors">
+                          {/* Index */}
+                          <td className="py-3 px-4 font-mono text-amber-700 border-r border-amber-100/50 text-center">{startIndex + idx + 1}</td>
+                          
+                          {/* Date */}
+                          <td className="py-3 px-4 text-center font-mono border-r border-amber-100/50">{tx.date}</td>
+                          
+                          {/* Member Name */}
+                          <td className="py-3 px-4 border-r border-amber-100/50">
+                            <div className="font-extrabold text-amber-950">{tx.memberName}</div>
+                          </td>
+                          
+                          {/* Type Badge */}
+                          <td className="py-3 px-4 text-center border-r border-amber-100/50">
+                            {getTypeBadge(tx.type)}
+                          </td>
+                          
+                          {/* Amount */}
+                          <td className={`py-3 px-4 text-right font-mono font-bold border-r border-amber-100/50 text-xs md:text-sm ${
+                            tx.type === "expense" ? "text-rose-700" : "text-emerald-700"
+                          }`}>
+                            {tx.type === "expense" ? "-" : "+"}₹{tx.amount.toLocaleString("en-IN")}
+                          </td>
 
-                        {/* Notes */}
-                        <td className="py-3 px-4 text-amber-900/80 text-[11px] truncate max-w-xs" title={tx.notes}>
-                          {tx.notes || "—"}
-                        </td>
-                      </tr>
-                    ))
+                          {/* Notes */}
+                          <td className="py-3 px-4 text-amber-900/80 text-[11px] truncate max-w-xs" title={tx.notes}>
+                            {tx.notes || "—"}
+                          </td>
+                        </tr>
+                      ));
+                    })()
                   )}
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {activeAccountData && activeAccountData.txs.length > 10 && (() => {
+              const itemsPerPage = 10;
+              const totalPages = Math.ceil(activeAccountData.txs.length / itemsPerPage);
+              return (
+                <div className="flex items-center justify-between px-6 py-3 border-t border-amber-100 bg-[#FFFDF5]/30 select-none print:hidden">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="px-3 py-1.5 rounded-lg border border-amber-200 bg-white text-xs font-bold text-amber-950 hover:bg-brand-cream disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    પૂર્વ (Prev)
+                  </button>
+                  <div className="flex items-center gap-1.5">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`size-8 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                          currentPage === p
+                            ? "bg-brand-orange text-white border-brand-orange"
+                            : "bg-white text-amber-950 border-amber-200 hover:bg-brand-cream"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="px-3 py-1.5 rounded-lg border border-amber-200 bg-white text-xs font-bold text-amber-950 hover:bg-brand-cream disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    આગળ (Next)
+                  </button>
+                </div>
+              );
+            })()}
 
             {/* Sub Ledger Footer Summary */}
             {activeAccountData && activeAccountData.txs.length > 0 && (
