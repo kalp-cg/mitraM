@@ -30,6 +30,8 @@ import Reports from "./components/Reports";
 import Settings from "./components/Settings";
 import IpoTracker from "./components/IpoTracker";
 
+const AUTH_TOKEN_STORAGE_KEY = "shubh_vyapar_token";
+
 const syncMasterRowsWithMembers = (members: Member[], currentMasterRows: MasterRow[], ipoTrades: IpoTrade[] = []): MasterRow[] => {
   const updatedRows = currentMasterRows.map((row) => ({ ...row }));
   
@@ -128,9 +130,10 @@ export default function App() {
   const [selectedGroupMembers, setSelectedGroupMembers] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Load auth token on start
+  // Keep login only for the current tab session. Closing the tab/browser clears sessionStorage.
   useEffect(() => {
-    const token = localStorage.getItem("shubh_vyapar_token");
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    const token = sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
     if (token) {
       setAuthToken(token);
     }
@@ -182,7 +185,8 @@ export default function App() {
   }, [authToken]);
 
   const handleLoginSuccess = (token: string) => {
-    localStorage.setItem("shubh_vyapar_token", token);
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
     setAuthToken(token);
   };
 
@@ -190,7 +194,8 @@ export default function App() {
     try {
       await fetch("/api/logout", { method: "POST" });
     } catch (e) {}
-    localStorage.removeItem("shubh_vyapar_token");
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     setAuthToken(null);
     setSelectedMemberId(null);
     setActiveTab("dashboard");
