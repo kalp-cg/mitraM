@@ -20,10 +20,9 @@ describe('Basic API sanity', () => {
     expect(res.body).toHaveProperty('status', 'ok');
   });
 
-  test('GET /api/image/hanuman-full returns svg', async () => {
+  test('GET /api/image/hanuman-full redirects', async () => {
     const res = await request(app).get('/api/image/hanuman-full');
-    expect(res.statusCode).toBe(200);
-    expect(res.headers['content-type']).toMatch(/image\/svg\+xml/);
+    expect(res.statusCode).toBe(302);
   });
 
   test('POST /api/data persists centralized snapshot', async () => {

@@ -105,8 +105,8 @@ const DEFAULT_DATA = {
   appDescriptionGu: "ચોપડા પૂજન - ડિજિટલ ખાતાવહી",
   recentLogs: [],
   targetAccounts: [
-    "NILAM SBI",
-    "NILAM PRAJAPATI"
+    "SBI Bank",
+    "HDFC Bank"
   ]
 };
 

@@ -29,7 +29,7 @@ const ipoTradeSchema = new mongoose.Schema({
   },
   dematAccount: {
     type: String,
-    default: 'NILAM SBI'
+    default: 'SBI Bank'
   },
   status: {
     type: String,

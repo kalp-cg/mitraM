@@ -99,7 +99,7 @@ export default function AccountsLedger({ targetAccounts, transactions = [] }: Ac
             વ્યવહાર ખાતા રજીસ્ટર (Accounts Ledger)
           </h3>
           <p className="text-xs text-amber-700/80 mt-1">
-            પિતૃ પક્ષ, NILAM SBI, NEELAN ABI વગેરે ખાતાવાર ઉપલબ્ધ બેલેન્સ અને વ્યવહાર પત્રક
+            પિતૃ પક્ષ, SBI Bank, HDFC Bank વગેરે ખાતાવાર ઉપલબ્ધ બેલેન્સ અને વ્યવહાર પત્રક
           </p>
         </div>
 
@@ -141,7 +141,7 @@ export default function AccountsLedger({ targetAccounts, transactions = [] }: Ac
           <Search className="size-4.5 text-amber-900/40 mr-2.5 shrink-0" />
           <input
             type="text"
-            placeholder="ખાતાનું નામ શોધો (e.g. NILAM SBI)..."
+            placeholder="ખાતાનું નામ શોધો (e.g. SBI Bank)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-transparent border-none text-xs font-bold text-amber-950 placeholder-amber-900/30 outline-none"

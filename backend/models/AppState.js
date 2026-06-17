@@ -33,7 +33,7 @@ const appStateSchema = new mongoose.Schema({
   },
   targetAccounts: {
     type: Array,
-    default: ['NILAM SBI', 'NILAM PRAJAPATI'],
+    default: ['SBI Bank', 'HDFC Bank'],
   },
   transactions: {
     type: Array,

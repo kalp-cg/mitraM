@@ -43,7 +43,7 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
   });
   const [formBuyPrice, setFormBuyPrice] = useState("");
   const [formQuantity, setFormQuantity] = useState("1");
-  const [formDematAccount, setFormDematAccount] = useState("NILAM SBI");
+  const [formDematAccount, setFormDematAccount] = useState("SBI Bank");
   const [formYear, setFormYear] = useState(currentYear || "year2026");
   const [formNotes, setFormNotes] = useState("");
 
@@ -605,7 +605,7 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="e.g. NILAM SBI"
+                    placeholder="e.g. SBI Bank"
                     value={formDematAccount}
                     onChange={(e) => setFormDematAccount(e.target.value)}
                     className="flex-1 bg-brand-cream border border-brand-border rounded-xl px-3.5 py-2.5 text-xs text-brand-soil font-bold"
@@ -616,9 +616,9 @@ export default function IpoTracker({ ipoTrades, ipoSummary, onAddTrade, onUpdate
                     className="bg-brand-wheat border border-brand-border rounded-xl px-2 py-1 text-[11px] font-bold text-brand-soil cursor-pointer outline-none"
                   >
                     <option value="">-- પસંદ --</option>
-                    <option value="NILAM SBI">NILAM SBI</option>
+                    <option value="SBI Bank">SBI Bank</option>
                     <option value="JAINAM AC">JAINAM AC</option>
-                    <option value="NILAM AC">NILAM AC</option>
+                    <option value="HDFC Bank">HDFC Bank</option>
                     <option value="ANGEL ONE">ANGEL ONE</option>
                   </select>
                 </div>
