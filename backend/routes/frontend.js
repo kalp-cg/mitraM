@@ -138,12 +138,21 @@ router.get('/data', async (req, res) => {
         ? snapshotMembers
         : await Member.find().sort({ nameEn: 1 }).lean();
 
-      const members = membersRaw.map((m, idx) => ({
-        ...m,
-        imageUrl: m.imageUrl && (m.imageUrl.startsWith('http') || m.imageUrl.startsWith('/api/'))
-          ? m.imageUrl
-          : `/api/image/member/${idx}`
-      }));
+      const members = membersRaw.map((m, idx) => {
+        const out = {
+          ...m,
+          imageUrl: m.imageUrl && (m.imageUrl.startsWith('http') || m.imageUrl.startsWith('/api/'))
+            ? m.imageUrl
+            : `/api/image/member/${idx}`
+        };
+        if (m.years) {
+          const yearsObj = m.years instanceof Map ? Object.fromEntries(m.years) : m.years;
+          Object.keys(yearsObj).forEach((yearKey) => {
+            out[yearKey] = yearsObj[yearKey];
+          });
+        }
+        return out;
+      });
 
       const report = await YearlyReport.findOne({ reportType: 'master_summary' }).lean();
       const storedGrandTotal = report?.masterSummary?.find((row) => row.key === 'ekandKul');
@@ -187,7 +196,18 @@ router.get('/data', async (req, res) => {
 
     const financialYears = [
       { id: 'year2023', label: '2023', masterKey: 'year23' },
-      { id: 'year2024', label: '2024', masterKey: 'year24' }
+      { id: 'year2024', label: '2024', masterKey: 'year24' },
+      { id: 'year2025', label: '2025', masterKey: 'year25' },
+      { id: 'year2026', label: '2026', masterKey: 'year26' },
+      { id: 'year2027', label: '2027', masterKey: 'year27' },
+      { id: 'year2028', label: '2028', masterKey: 'year28' },
+      { id: 'year2029', label: '2029', masterKey: 'year29' },
+      { id: 'year2030', label: '2030', masterKey: 'year30' },
+      { id: 'year2031', label: '2031', masterKey: 'year31' },
+      { id: 'year2032', label: '2032', masterKey: 'year32' },
+      { id: 'year2033', label: '2033', masterKey: 'year33' },
+      { id: 'year2034', label: '2034', masterKey: 'year34' },
+      { id: 'year2035', label: '2035', masterKey: 'year35' }
     ];
 
     const members = membersRaw.map((m, idx) => {

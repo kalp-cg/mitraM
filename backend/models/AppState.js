@@ -17,7 +17,7 @@ const appStateSchema = new mongoose.Schema({
   },
   currentYear: {
     type: String,
-    default: 'year2024_25',
+    default: 'year2026',
   },
   appTitleGu: {
     type: String,
